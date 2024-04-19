@@ -1,7 +1,10 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: self Workflow
 on: [push]
-
+# defaults:
+#     run:
+#       shell: bash
+#       # working-directory: /de/ed
 jobs:
   build:
     runs-on: self-hosted
@@ -27,5 +30,10 @@ jobs:
           echo $GITHUB_REPOSITORY
           echo $GITHUB_WORKSPACE
       - name: Change Working Dir
-        working-directory: /apps
+        working-directory: /home/runner
         run: pwd
+      - name: Python Shell
+        shell: python
+        run: |
+          import platform 
+          print(platform.processor())
