@@ -1,10 +1,9 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: self Workflow
 on: [push]
-# defaults:
-#     run:
-#       shell: bash
-#       # working-directory: /de/ed
+defaults:
+    run:
+      working-directory: ~/apps/my-server-repo
 jobs:
   # build:
   #   runs-on: self-hosted
@@ -51,15 +50,16 @@ jobs:
       # - name: Checkout repository NOde
       #   uses: actions/checkout@v2
 
-      - name: v4
-        uses: actions/checkout@v4
+
 
       - uses: actions/checkout@v4
+        with:
+          path: ~/apps/my-server-repo
       - uses: actions/setup-node@v4
         with:
           node-version: 18
       - run: npm ci
-      - run: npm build
+      - run: npm run build
 
     
       # - name: Use Node.js
