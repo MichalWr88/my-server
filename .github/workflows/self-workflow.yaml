@@ -19,30 +19,31 @@ jobs:
   #         echo test, and deploy your project
   #         node -v
   #         npm -v
-  display-wd-info:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Display Working Directory & List Files
-        run: |
-          pwd
-          ls -a
-          echo $GITHUB_SHA
-          echo $GITHUB_REPOSITORY
-          echo $GITHUB_WORKSPACE
-      - name: Change Working Dir
-        working-directory: /home/runner
-        run: pwd
-      - name: Python Shell
-        shell: python
-        run: |
-          import platform 
-          print(platform.processor())
+
+  # display-wd-info:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Display Working Directory & List Files
+  #       run: |
+  #         pwd
+  #         ls -a
+  #         echo $GITHUB_SHA
+  #         echo $GITHUB_REPOSITORY
+  #         echo $GITHUB_WORKSPACE
+  #     - name: Change Working Dir
+  #       working-directory: /home/runner
+  #       run: pwd
+  #     - name: Python Shell
+  #       shell: python
+  #       run: |
+  #         import platform 
+  #         print(platform.processor())
 
 
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
 
   node:
     runs-on: self-hosted
@@ -53,15 +54,21 @@ jobs:
       - name: v4
         uses: actions/checkout@v4
 
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm build
 
     
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+      # - name: Use Node.js
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: '14'
     
-      - name: Install dependencies
-        run: npm ci
+      # - name: Install dependencies
+      #   run: npm ci
     
       # - name: Run script
       #   run: node ./path/to/your/script.js
