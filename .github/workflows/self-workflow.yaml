@@ -47,8 +47,13 @@ jobs:
   node:
     runs-on: self-hosted
     steps:
-      - name: Checkout repository NOde
-        uses: actions/checkout@v2
+      # - name: Checkout repository NOde
+      #   uses: actions/checkout@v2
+
+      - name: v4
+        uses: actions/checkout@v4
+
+
     
       - name: Use Node.js
         uses: actions/setup-node@v2
@@ -58,5 +63,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
     
-      - name: Run script
-        run: node ./path/to/your/script.js
+      # - name: Run script
+      #   run: node ./path/to/your/script.js
