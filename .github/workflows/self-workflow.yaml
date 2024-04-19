@@ -1,18 +1,31 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: First Workflow
+name: self Workflow
 on: [push]
 
 jobs:
-    build:
-        runs-on: self-hosted
+  build:
+    runs-on: self-hosted
 
-        steps:
-            - uses: actions/checkout@v2
-            - name: Run a one-line script
-              run: echo Hello, world!
-            - name: Run a multi-line script
-              run: |
-                echo Add other actions to build
-                echo test, and deploy your project
-                node -v
-                npm -v
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run a self-line script
+        run: echo Hello, world!
+      - name: Run self a multi-line script
+        run: |
+          echo Add other actions to build
+          echo test, and deploy your project
+          node -v
+          npm -v
+  display-wd-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Working Directory & List Files
+        run: |
+          pwd
+          ls -a
+          echo $GITHUB_SHA
+          echo $GITHUB_REPOSITORY
+          echo $GITHUB_WORKSPACE
+      - name: Change Working Dir
+        working-directory: /apps
+        run: pwd
