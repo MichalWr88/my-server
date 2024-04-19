@@ -6,19 +6,19 @@ on: [push]
 #       shell: bash
 #       # working-directory: /de/ed
 jobs:
-  build:
-    runs-on: self-hosted
+  # build:
+  #   runs-on: self-hosted
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run a self-line script
-        run: echo Hello, world!
-      - name: Run self a multi-line script
-        run: |
-          echo Add other actions to build
-          echo test, and deploy your project
-          node -v
-          npm -v
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Run a self-line script
+  #       run: echo Hello, world!
+  #     - name: Run self a multi-line script
+  #       run: |
+  #         echo Add other actions to build
+  #         echo test, and deploy your project
+  #         node -v
+  #         npm -v
   display-wd-info:
     runs-on: ubuntu-latest
     steps:
@@ -37,13 +37,26 @@ jobs:
         run: |
           import platform 
           print(platform.processor())
-      - name: Node Shell
-        shell: node
-        run: |
-          console.log(process.platform)
-          console.log(process.version)
+
 
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+  node:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository NOde
+        uses: actions/checkout@v2
+    
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+    
+      - name: Install dependencies
+        run: npm ci
+    
+      - name: Run script
+        run: node ./path/to/your/script.js
