@@ -37,3 +37,13 @@ jobs:
         run: |
           import platform 
           print(platform.processor())
+      - name: Node Shell
+        shell: node
+        run: |
+          console.log(process.platform)
+          console.log(process.version)
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
