@@ -1,22 +1,22 @@
-import fastify from 'fastify'
-import { IQuerystring } from './models/fastify'
+import fastify from "fastify";
+import { IQuerystring } from "./models/fastify";
 
-const server = fastify()
+const server = fastify();
 
-server.get('/ping', async (request, reply) => {
-  return 'pong\n'
-})
-server.get('/', function (request, reply) {  
-	reply.send({ hello: 'world' })  
-})  
+server.get("/ping", async (request, reply) => {
+  return "pong\n";
+});
+server.get("/", function (request, reply) {
+  reply.send({ hello: "world" });
+});
 
 server.get<{
-  Querystring: IQuerystring,
-}>('/auth', async (request, reply) => {
-  console.log(request.query)
-  const { username, password } = request.query
-  const customerHeader = request.headers['h-Custom']
-  if(username !== 'admin' || password !== 'admin') {
+  Querystring: IQuerystring;
+}>("/auth", async (request, reply) => {
+  console.log(request.query);
+  const { username, password } = request.query;
+  const customerHeader = request.headers["h-Custom"];
+  if (username !== "admin" || password !== "admin") {
     reply.code(404).send({ error: "invalid username or password " });
   }
   // do something with request data
@@ -24,16 +24,16 @@ server.get<{
   // this works
   reply.code(200).send({ success: true });
   // but this gives a type error
- /*  reply.code(200).send('uh-oh'); */
+  /*  reply.code(200).send('uh-oh'); */
   // it even works for wildcards
-  reply.code(404).send({ error: 'Not found' });
-  return `logged in!`
-})
+  reply.code(404).send({ error: "Not found" });
+  return `logged in!`;
+});
 
-server.listen({ port: 8080 }, (err, address) => {
+server.listen({ port: 8080, host: "192.168.2.191" }, (err, address) => {
   if (err) {
-    console.error(err)
-    process.exit(1)
+    console.error(err);
+    process.exit(1);
   }
-  console.log(`Server listening at ${address}`)
-})
+  console.log(`Server listening at ${address}`);
+});
