@@ -3,7 +3,7 @@ name: self Workflow
 on: [push]
 defaults:
     run:
-      working-directory: ~/apps/my-server-repo
+      working-directory: /root/apps/my-server-repo
 jobs:
   # build:
   #   runs-on: self-hosted
@@ -48,13 +48,14 @@ jobs:
     runs-on: self-hosted
     steps:
       # - name: Checkout repository NOde
-      #   uses: actions/checkout@v2
-
+      - name: Change Working Dir
+        working-directory: /root/apps
+        run: mkdir my-server-repo
 
 
       - uses: actions/checkout@v4
         with:
-          path: ~/apps/my-server-repo
+          path: /root/apps/my-server-repo
       - uses: actions/setup-node@v4
         with:
           node-version: 18
