@@ -51,7 +51,10 @@ jobs:
           node-version: 18
       - run: npm ci
       - run: npm run build
-      - run: node ./build/index.js
+      - run: |
+            npm run start &
+            sleep 10 &&
+            curl http://localhost:8080 
 
     
       # - name: Use Node.js
