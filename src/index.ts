@@ -17,7 +17,7 @@ server.get<{
   const { username, password } = request.query;
   const customerHeader = request.headers["h-Custom"];
   if (username !== "admin" || password !== "admin") {
-    reply.code(404).send({ error: "invalid username or password " });
+    reply.code(404).send({ error: "invalid  " });
   }
   // do something with request data
   // chaining .statusCode/.code calls with .send allows type narrowing. For example:
