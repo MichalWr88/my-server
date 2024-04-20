@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: First Workflow
+name: env Workflow
 on: [push]
+run-name: "Expressions & Contexts by @${{ github.actor }}, event: ${{ github.event_name }}"
 
 jobs:
   log-env-vars:
