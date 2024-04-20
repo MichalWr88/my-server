@@ -1,12 +1,11 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: self Workflow
-on: 
+on:
   push:
     paths:
       - "./src/**.ts"
       - "package.json"
       - "tsconfig.json"
-
 
 jobs:
   # build:
@@ -39,9 +38,8 @@ jobs:
   #     - name: Python Shell
   #       shell: python
   #       run: |
-  #         import platform 
+  #         import platform
   #         print(platform.processor())
-
 
   #     - name: Checkout repository
   #       uses: actions/checkout@v2
@@ -56,20 +54,22 @@ jobs:
         with:
           node-version: 18
       - run: npm ci
+        env:
+          JIRA_HOST: ${{secrets.JIRA_HOST}}
       - run: npm run build
       - run: |
-            pm2 start ./build/index.js --watch -i max &
-            sleep 10 &&
-            curl http://localhost:8080 
-
-    
+          pm2 start ./build/index.js --watch -i max &
+          sleep 10 &&
+          curl http://localhost:8080
+        env:
+          JIRA_HOST: ${{secrets.JIRA_HOST}}
       # - name: Use Node.js
       #   uses: actions/setup-node@v2
       #   with:
       #     node-version: '14'
-    
+
       # - name: Install dependencies
       #   run: npm ci
-    
+
       # - name: Run script
       #   run: node ./path/to/your/script.js
