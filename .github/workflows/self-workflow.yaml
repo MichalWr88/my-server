@@ -57,9 +57,10 @@ jobs:
       - run: |
           echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
           echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
+      - run: pm2 stop my-server     
       - run: npm run build
       - run: |
-          pm2 start ./build/index.js --watch -i max &
+          npm run pm2-start &
           sleep 10 &&
           curl http://localhost:8080
       # - name: Use Node.js
