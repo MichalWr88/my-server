@@ -1,12 +1,13 @@
 {
   "name": "my-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "packageManager": "npm",
   "main": "index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node ./build/index.js",
+    "pm2-start": "pm2 start   ecosystem.config.js",
     "dev": "nodemon"
   },
   "author": "",
