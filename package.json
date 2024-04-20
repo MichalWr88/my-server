@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node ./build/index.js",
-    "pm2-start": "pm2 start   ecosystem.config.js",
     "dev": "nodemon"
   },
   "author": "",
