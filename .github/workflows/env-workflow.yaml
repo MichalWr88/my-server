@@ -9,8 +9,8 @@ jobs:
     steps:
       - name: Log Environment Variables
         run: |
-          echo "JIRA_TEST:  ${{ JIRA_TEST }}"
-          echo "JIRA_HOST:  ${{ JIRA_HOST }}"
+          echo "JIRA_TEST:  ${{ vars.JIRA_TEST }}"
+          echo "JIRA_HOST:  ${{ secrets.JIRA_HOST }}"
           echo "GITHUB_SHA: $GITHUB_SHA"
           echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
