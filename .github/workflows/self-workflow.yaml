@@ -54,15 +54,14 @@ jobs:
         with:
           node-version: 18
       - run: npm ci
-        env:
-          JIRA_HOST: ${{secrets.JIRA_HOST}}
+      - run: |
+          echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
+          echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
       - run: npm run build
       - run: |
           pm2 start ./build/index.js --watch -i max &
           sleep 10 &&
           curl http://localhost:8080
-        env:
-          JIRA_HOST: ${{secrets.JIRA_HOST}}
       # - name: Use Node.js
       #   uses: actions/setup-node@v2
       #   with:
