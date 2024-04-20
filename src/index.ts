@@ -1,5 +1,6 @@
 import fastify from "fastify";
 import { IQuerystring } from "./models/fastify";
+import 'dotenv/config'
 
 const server = fastify();
 
@@ -7,7 +8,7 @@ server.get("/ping", async (request, reply) => {
   return "pong\n";
 });
 server.get("/", function (request, reply) {
-  reply.send({ hello: "world" });
+  reply.send({ hello: "22", host: process.env.JIRA_HOST });
 });
 
 server.get<{
