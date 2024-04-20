@@ -57,7 +57,7 @@ jobs:
       - run: |
           echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
           echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
-      - run: pm2 stop my-server     
+      - run: pm2 stop ecosystem.config.js    
       - run: npm run build
       - run: |
           npm run pm2-start &
