@@ -8,11 +8,11 @@
     "build": "tsc -p tsconfig.json",
     "start": "node ./build/index.js",
     "dev": "nodemon"
-
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "fastify": "^4.26.2"
   },
   "devDependencies": {
