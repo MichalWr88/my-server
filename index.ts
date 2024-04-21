@@ -1,3 +1,3 @@
-import { startServer } from "./src/server";
+import { startClusterServer } from "./src/cluster";
 
-startServer();
+startClusterServer();
