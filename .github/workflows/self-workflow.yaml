@@ -48,6 +48,8 @@ jobs:
 
   node:
     runs-on: self-hosted
+    strategy:
+      fail-fast: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
