@@ -1,5 +1,10 @@
 {
-
+  // "ts-node": {
+  //   "files": true
+  // },
+  "files": [
+    "types.ts"
+  ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
     "resolveJsonModule": true,
