@@ -13,7 +13,6 @@ export const mainRoutes = async (server: FastifyInstance) => {
     });
   });
   createRoute(server, "/", (req, reply) => {
-   
    reply.sendFile('index.html')
   });
 };
