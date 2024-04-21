@@ -14,8 +14,11 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/jwt": "^8.0.0",
+    "@fastify/static": "^7.0.3",
+    "@types/jira-client": "^7.1.9",
     "dotenv": "^16.4.5",
-    "fastify": "^4.26.2"
+    "fastify": "^4.26.2",
+    "jira-client": "^8.2.2"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
