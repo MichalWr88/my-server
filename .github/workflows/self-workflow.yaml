@@ -6,6 +6,7 @@ on:
       - "./src/**.ts"
       - "package.json"
       - "tsconfig.json"
+      - "./.github/workflows/self-workflow.yaml"
 
 jobs:
   # build:
@@ -61,7 +62,7 @@ jobs:
           echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
       - run: npm run build
       - run: |
-          npm run pm2-start &
+          npm run pm2-start & pm2 save &
           sleep 10 &&
           curl http://localhost:8080
       # - name: Use Node.js
