@@ -62,7 +62,7 @@ jobs:
           echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
       - run: npm run build
       - run: |
-          npm run pm2-start & pm2 save 
+          npm run pm2-start 
           # &
           # sleep 20 &&
           # curl http://localhost:8080
