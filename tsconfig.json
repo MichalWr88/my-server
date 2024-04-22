@@ -2,9 +2,11 @@
   // "ts-node": {
   //   "files": true
   // },
-  "files": [
-    "types.ts"
-  ],
+  // "files": [
+  //   "types.ts",
+  //   "index.ts",
+  //   "package.json"
+  // ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
     "resolveJsonModule": true,
