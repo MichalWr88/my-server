@@ -60,6 +60,14 @@ jobs:
       - run: |
           echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
           echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          echo SALT_ROUNDS=${{ secrets.SALT_ROUNDS }} >> .env
+          echo DB_TYPE=${{ secrets.DB_TYPE }} >> .env
+          echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          echo DB_USERNAME=${{ secrets.DB_USERNAME }} >> .env
+          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
+          echo DB_DATABASE=${{ secrets.DB_DATABASE }} >> .env
       - run: npm run build
       - run: |
           npm run pm2-start 
