@@ -11,6 +11,8 @@ export class TokenHistory {
   id: number | undefined;
   @Column()
   email!: string;
+  @Column("enum", { enum: ["local", "prod"] })
+  type!: "local" | "prod";
   @CreateDateColumn()
   createdAt!: string;
 }
