@@ -3,13 +3,10 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 const path = require("node:path");
 
 export const mainRoutes = async (server: FastifyInstance) => {
-  server.get("/token", (req: FastifyRequest, reply: FastifyReply) => {
-    const token = req.jwt.sign({ hello: "world" });
+  server.get("/status", (req: FastifyRequest, reply: FastifyReply) => {
     reply.send({
-      hello: "22",
-      host: process.env.JIRA_HOST,
+      status: "OK",
       v: packageFile.version,
-      token,
     });
   });
   server.get("/", (req: FastifyRequest, reply: FastifyReply) => {
