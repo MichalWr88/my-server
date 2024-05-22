@@ -3,12 +3,12 @@ import { CreateUserInput, LoginUserInput } from "./userSchema";
 import { hash, compare } from "bcrypt";
 import { User } from "../../entity/User";
 import { AppDataSource } from "../../data-source";
+import { TokenHistory } from "../../entity/TokenHistory";
 
-const user = new User();
 if (!process.env.SALT_ROUNDS) {
   throw new Error("SALT_ROUNDS is not defined");
 }
-const SALT_ROUNDS = process.env.SALT_ROUNDS;
+const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
 export async function createUser(
   req: FastifyRequest<{
     Body: CreateUserInput;
@@ -44,22 +44,27 @@ export async function loginUser(
   }>,
   reply: FastifyReply
 ) {
-  const { email, password,type } = req.body;
+  const { email, password, type } = req.body;
   const userInDB = await AppDataSource.manager.findOneBy(User, { email, type });
 
   const isMatch = userInDB && (await compare(password, userInDB.password));
-  if (!user || !isMatch) {
+  if (!userInDB || !isMatch) {
     return reply.code(401).send({
       message: "Invalid email or password",
     });
   }
   const payload = {
-    id: user.id,
-    email: user.email,
-    name: user.name,
+    id: userInDB.id,
+    email: userInDB.email,
+    name: userInDB.name,
+    type: userInDB.type,
   };
-  console.log(req.jwt);
   const token = req.jwt.sign(payload);
 
+  console.log(req.jwt);
+  const tokenHistory = new TokenHistory();
+  tokenHistory.email = userInDB.email;
+  tokenHistory.type = userInDB.type;
+  await AppDataSource.manager.save(tokenHistory);
   return { accessToken: token };
 }
