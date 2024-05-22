@@ -2,5 +2,5 @@
   "yaml.schemas": {
     "https://json.schemastore.org/github-workflow.json": "/.github/workflows/*.yml"
   },
-  "cSpell.words": ["fastify", "fjwt", "tsbuildinfo", "Worklog"]
+  "cSpell.words": ["fastify", "fjwt", "tsbuildinfo", "typeorm", "Worklog"]
 }
