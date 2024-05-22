@@ -1,17 +1,39 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { createRoute } from "./routeUtils";
-import { getCurrentJiraUser } from "../../service/jira/jiraService";
+import {
+  getCurrentJiraUser,
+  getJiraIssue,
+} from "../../service/jira/jiraService";
+import { JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
 
 export const jiraRoutes = async (server: FastifyInstance) => {
-  createRoute(server, "/user", async(req, reply) => {
-    const response = await getCurrentJiraUser();
-    console.log(response);
-    reply.send(response);
-  });
+  server.get(
+    "/user",
+    {
+      preHandler: [server.authenticate],
+    },
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const response = await getCurrentJiraUser();
+      reply.send(response);
+    }
+  );
+  server.get(
+    "/task/:id",
+    {
+      preHandler: [server.authenticate],
+    },
+    async (
+      {
+        params: { id },
+      }: FastifyRequest<{
+        Params: JIraTaskIdSchemaParams;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const response = await getJiraIssue(id);
+      response.fields;
+      reply.send(response);
+    }
+  );
 
-  server.get("/", (req: FastifyRequest, reply: FastifyReply) => {
-    reply.send({ message: "/ route hit" });
-  });
-
-  server.log.info("user routes registered");
+  server.log.info("jira routes registered");
 };
