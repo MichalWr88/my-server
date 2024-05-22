@@ -28,6 +28,7 @@ const createUserSchema = z.object({
       })
       .email(),
     password: z.string().min(6),
+    type: z.enum(['local', 'prod']),
   })
   export type LoginUserInput = z.infer<typeof loginSchema>
   const loginResponseSchema = z.object({
