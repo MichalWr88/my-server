@@ -93,12 +93,41 @@ export const updateJiraIssue = async (
 export const getCurrentJiraUser = async (): Promise<JiraApi.JsonResponse> => {
   return await jira.getCurrentUser();
 };
-// jira.getCurrentUser;
-// jira.getIssue;
-// jira.searchJira;
-// jira.getSprint;
-// jira.getUsersInGroup;
-// jira.getUsersIssues;
-// jira.updateIssue;
+export const getJiraIssue = async (
+  id: string
+): Promise<JiraApi.IssueObject> => {
+  return await jira.getIssue(id);
+};
+export const searchJira = async (
+  searchString: string,
+  searchQuery?: JiraApi.SearchQuery
+): Promise<JiraApi.IssueObject> => {
+  return await jira.searchJira(searchString, searchQuery);
+};
+export const getJiraSprint = async (
+  sprintId: string
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getSprint(sprintId);
+};
+export const getJiraUsersInGroup = async (
+  groupname: string,
+  startAt?: number | undefined,
+  maxResults?: number | undefined
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getUsersInGroup(groupname, startAt, maxResults);
+};
+export const getJiraUsersIssues = async (
+  username: string,
+  open: boolean
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getUsersIssues(username, open);
+};
+export const getJiraUpdateIssue = async (
+  issueId: string,
+  issueUpdate: JiraApi.IssueObject,
+  query?: JiraApi.Query | undefined
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.updateIssue(issueId, issueUpdate, query);
+};
 
 export default jira;
