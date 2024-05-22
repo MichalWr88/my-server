@@ -18,7 +18,7 @@ export class User {
   @Column()
   email!: string;
   @Column("enum", { enum: ["local", "prod"] })
-
+  type!: "local" | "prod";
 
   @CreateDateColumn()
   createdAt!: string;
