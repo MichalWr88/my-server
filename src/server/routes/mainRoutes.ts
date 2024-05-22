@@ -1,9 +1,9 @@
 import packageFile from "../../../package.json";
-import { FastifyInstance } from "fastify";
-import { createRoute } from "./routeUtils";
-const path = require('node:path')
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+const path = require("node:path");
+
 export const mainRoutes = async (server: FastifyInstance) => {
-  createRoute(server, "/token", (req, reply) => {
+  server.get("/token", (req: FastifyRequest, reply: FastifyReply) => {
     const token = req.jwt.sign({ hello: "world" });
     reply.send({
       hello: "22",
@@ -12,7 +12,7 @@ export const mainRoutes = async (server: FastifyInstance) => {
       token,
     });
   });
-  createRoute(server, "/", (req, reply) => {
-   reply.sendFile('index.html')
+  server.get("/", (req: FastifyRequest, reply: FastifyReply) => {
+    reply.sendFile("index.html");
   });
 };
