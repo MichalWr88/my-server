@@ -1,12 +1,8 @@
 import JiraApi from "jira-client";
 import { isWorkday } from "../../utils";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { JiraLoopDaysRequest, JiraTaskRequest } from "./jiraSchema";
 
-export interface JiraTask {
-  date: Date;
-  jiraTaskId: string;
-  comment: string;
-  timeSpent: string;
-}
 if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
   throw new Error("Missing env variables");
 }
@@ -25,24 +21,44 @@ const formatJiraDate = (date: Date): string => {
   }-${date.getDate()}T${date.getHours()}:${date.getMinutes()}:00.000+0000`;
 };
 
-export const logJiraTime = async ({
-  date,
-  jiraTaskId,
-  comment,
-  timeSpent,
-}: JiraTask): Promise<JiraApi.JsonResponse | undefined> => {
+export const logJiraTime = async (
+  req: FastifyRequest<{
+    Body: JiraTaskRequest;
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse | undefined> => {
   try {
-    const jiraLogDate = new Date(date);
-    jiraLogDate.setHours(9, 40, 0, 0);
-
-    return await jira.addWorklog(jiraTaskId, {
+    const { comment, date, jiraTaskId, timeSpent } = req.body;
+    const jiraResp = await addJiraWorklog({
       comment,
-      started: formatJiraDate(jiraLogDate),
+      date,
+      jiraTaskId,
       timeSpent,
     });
-  } catch (error) {
-    console.log(error);
-    throw error;
+    return reply.code(200).send(jiraResp);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+export const logJiraLoopDays = async (
+  req: FastifyRequest<{
+    Body: JiraLoopDaysRequest;
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse | undefined> => {
+  try {
+    const { comment, startDate, endDate, jiraTaskId, timeSpent } = req.body;
+    const jiraResp = await loopDays({
+      comment,
+      startDate,
+      endDate,
+      jiraTaskId,
+      timeSpent,
+    });
+    console.log(jiraResp);
+    return reply.code(200).send({ message: "success" });
+  } catch (e) {
+    return reply.code(500).send(e);
   }
 };
 
@@ -65,7 +81,7 @@ export const loopDays = async ({
   // eslint-disable-next-line no-unmodified-loop-condition
   while (currentDate <= loopEndDate) {
     if (isWorkday(currentDate)) {
-      await logJiraTime({
+      await addJiraWorklog({
         date: currentDate,
         jiraTaskId,
         comment,
@@ -128,6 +144,19 @@ export const getJiraUpdateIssue = async (
   query?: JiraApi.Query | undefined
 ): Promise<JiraApi.JsonResponse> => {
   return await jira.updateIssue(issueId, issueUpdate, query);
+};
+export const addJiraWorklog = async (
+  jiraTask: JiraTaskRequest
+): Promise<JiraApi.JsonResponse> => {
+  const { comment, date, jiraTaskId, timeSpent } = jiraTask;
+  const jiraLogDate = new Date(date);
+  jiraLogDate.setHours(9, 40, 0, 0);
+
+  return await jira.addWorklog(jiraTaskId, {
+    comment,
+    started: formatJiraDate(jiraLogDate),
+    timeSpent,
+  });
 };
 
 export default jira;

@@ -2,8 +2,10 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import {
   getCurrentJiraUser,
   getJiraIssue,
+  logJiraLoopDays,
+  logJiraTime,
 } from "../../service/jira/jiraService";
-import { JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
+import { $ref, JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
 
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -33,6 +35,32 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       response.fields;
       reply.send(response);
     }
+  );
+  server.post(
+    "/task/:id/log-time",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        body: $ref("JiraTaskSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    logJiraTime
+  );
+  server.post(
+    "/task/log-time-range",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        body: $ref("JiraLoopDaysSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    logJiraLoopDays
   );
 
   server.log.info("jira routes registered");
