@@ -1,20 +1,32 @@
 import { z } from "zod";
 import { buildJsonSchemas } from "fastify-zod";
 
-// f.zod.get(
-//     `/item/:id`,
-//     {
-//       operationId: `getTodoItem`,
-//       params: `TodoItemId`,
-//       response: {
-//         200: `TodoItem`,
-//         404: `TodoItemNotFoundError`,
-//       },
-//     },
- const JIraTaskIdSchema = z.object({
+const JiraTaskSchemaRequest = z.object({
+  date: z.date(),
+  jiraTaskId: z.string(),
+  comment: z.string(),
+  timeSpent: z.string(),
+});
+export type JiraTaskRequest = z.infer<typeof JiraTaskSchemaRequest>;
+
+const JiraLoopDaysSchemaRequest = z.object({
+  startDate: z.date(),
+  endDate: z.date(),
+  jiraTaskId: z.string(),
+  comment: z.string(),
+  timeSpent: z.string(),
+});
+export type JiraLoopDaysRequest = z.infer<typeof JiraLoopDaysSchemaRequest>;
+
+const JIraTaskIdSchema = z.object({
   id: z.string(),
 });
-export type JIraTaskIdSchemaParams = z.infer<typeof JIraTaskIdSchema>
-export const { schemas: jiraSchemas, $ref } = buildJsonSchemas({
-  JIraTaskIdSchema,
-});
+export type JIraTaskIdSchemaParams = z.infer<typeof JIraTaskIdSchema>;
+export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
+  {
+    JIraTaskIdSchema,
+    JiraLoopDaysSchemaRequest,
+    JiraTaskSchemaRequest,
+  },
+  { $id: "jiraSchema" }
+);
