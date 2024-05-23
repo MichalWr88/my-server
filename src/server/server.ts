@@ -4,6 +4,7 @@ import { setRouting } from "./routes/routing";
 import fastifyStatic from "@fastify/static";
 import { userSchemas } from "../service/user/userSchema";
 import "reflect-metadata";
+import { jiraSchemas } from "../service/jira/jiraSchema";
 
 export const startFastifyServer = async () => {
   const server = fastify();
@@ -47,7 +48,7 @@ export const startFastifyServer = async () => {
 
   setRouting(server);
 
-  for (let schema of [...userSchemas]) {
+  for (let schema of [...userSchemas, ...jiraSchemas]) {
     server.addSchema(schema);
   }
 
