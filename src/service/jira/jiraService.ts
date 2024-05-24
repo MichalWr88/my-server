@@ -28,6 +28,7 @@ export const logJiraTime = async (
   reply: FastifyReply
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
+    console.log(req.body);
     const { comment, date, jiraTaskId, timeSpent } = req.body;
     const jiraResp = await addJiraWorklog({
       comment,
