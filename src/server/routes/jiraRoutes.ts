@@ -37,7 +37,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     }
   );
   server.post(
-    "/task/:id/log-time",
+    "/task/log-time",
     {
       preHandler: [server.authenticate],
       schema: {
