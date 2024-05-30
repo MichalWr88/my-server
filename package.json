@@ -8,7 +8,7 @@
       "build": "tsc -p tsconfig.json",
       "start": "node ./build/index.js",
       "pm2-start": "pm2 startOrRestart ecosystem.config.js",
-      "dev": "nodemon",
+      "dev": "TZ=UTC nodemon",
       "typeorm": "typeorm-ts-node-commonjs",
       "typeorm-sync": "typeorm-ts-node-commonjs schema:sync"
    },
