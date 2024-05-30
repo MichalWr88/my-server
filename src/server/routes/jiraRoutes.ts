@@ -1,12 +1,16 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+
+import { $ref, JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
 import {
   getCurrentJiraUser,
   getJiraIssue,
+} from "../../service/jira/jiraService";
+import {
+  searchJiraQuery,
   logJiraLoopDays,
   logJiraTime,
-} from "../../service/jira/jiraService";
-import { $ref, JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
-
+  searchJiraQueryPreConfigured,
+} from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
     "/user",
@@ -32,7 +36,6 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       reply: FastifyReply
     ) => {
       const response = await getJiraIssue(id);
-      response.fields;
       reply.send(response);
     }
   );
@@ -61,6 +64,33 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     logJiraLoopDays
+  );
+  server.post(
+    "/tasks/search",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        body: $ref("JiraQueryDatesSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    searchJiraQuery
+  );
+  server.get(
+    "/tasks/search/pre-configured",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        // body: $ref("JiraQueryDatesSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    searchJiraQueryPreConfigured
   );
 
   server.log.info("jira routes registered");
