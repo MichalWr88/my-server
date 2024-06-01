@@ -1,7 +1,18 @@
 import JiraApi from "jira-client";
 import { isWorkday } from "../../utils";
-import { FastifyReply, FastifyRequest } from "fastify";
-import { JiraLoopDaysRequest, JiraTaskRequest } from "./jiraSchema";
+import {
+  JiraOfDay,
+  JiraOfMonth,
+  JiraOfWeek,
+  JiraTaskRequest,
+  JiraWorklogByTimeRequest,
+  JiraWorklogPreConfiguredRequest,
+} from "./jiraSchema";
+import {
+  JiraWorklogListResponse,
+  Worklog,
+} from "./models/jiraSchemaQueryWorklog";
+type fnJiraDates = "OfMonth" | "OfWeek" | "OfDay";
 
 if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
   throw new Error("Missing env variables");
@@ -19,48 +30,6 @@ const formatJiraDate = (date: Date): string => {
   return `${date.getFullYear()}-${
     date.getMonth() + 1
   }-${date.getDate()}T${date.getHours()}:${date.getMinutes()}:00.000+0000`;
-};
-
-export const logJiraTime = async (
-  req: FastifyRequest<{
-    Body: JiraTaskRequest;
-  }>,
-  reply: FastifyReply
-): Promise<JiraApi.JsonResponse | undefined> => {
-  try {
-    console.log(req.body);
-    const { comment, date, jiraTaskId, timeSpent } = req.body;
-    const jiraResp = await addJiraWorklog({
-      comment,
-      date,
-      jiraTaskId,
-      timeSpent,
-    });
-    return reply.code(200).send(jiraResp);
-  } catch (e) {
-    return reply.code(500).send(e);
-  }
-};
-export const logJiraLoopDays = async (
-  req: FastifyRequest<{
-    Body: JiraLoopDaysRequest;
-  }>,
-  reply: FastifyReply
-): Promise<JiraApi.JsonResponse | undefined> => {
-  try {
-    const { comment, startDate, endDate, jiraTaskId, timeSpent } = req.body;
-    const jiraResp = await loopDays({
-      comment,
-      startDate,
-      endDate,
-      jiraTaskId,
-      timeSpent,
-    });
-    console.log(jiraResp);
-    return reply.code(200).send({ message: "success" });
-  } catch (e) {
-    return reply.code(500).send(e);
-  }
 };
 
 export const loopDays = async ({
@@ -159,5 +128,171 @@ export const addJiraWorklog = async (
     timeSpent,
   });
 };
+export const getJiraWorklogs = async (
+  jiraTaskId: string
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getIssueWorklogs(jiraTaskId);
+};
 
+const getFnJiraDates = (
+  type: JiraOfMonth["type"] | JiraOfWeek["type"] | JiraOfDay["type"]
+): fnJiraDates => {
+  switch (type) {
+    case "M":
+      return "OfMonth";
+    case "W":
+      return "OfWeek";
+    case "D":
+      return "OfDay";
+    default:
+      return "OfMonth";
+  }
+};
+
+const checkIfWorklogIsInDateRange = (
+  type: JiraOfMonth["type"] | JiraOfWeek["type"] | JiraOfDay["type"],
+  diffStartDate = 0,
+  diffEndDate = 0
+) => {
+  switch (type) {
+    case "M":
+      return {
+        startDate: new Date(
+          new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() + diffStartDate,
+            1
+          ).setHours(0, 0, 0, 0)
+        ),
+        endDate: new Date(
+          new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() + diffEndDate,
+            0
+          ).setHours(23, 59, 59, 999)
+        ),
+      };
+
+    case "W":
+      return {
+        startDate: new Date(
+          new Date(
+            new Date().setDate(new Date().getDate() + diffStartDate * 7)
+          ).setHours(0, 0, 0, 0)
+        ),
+        endDate: new Date(
+          new Date(
+            new Date().setDate(new Date().getDate() + diffEndDate * 8)
+          ).setHours(23, 59, 59, 999)
+        ),
+      };
+    case "D":
+      return {
+        startDate: new Date(
+          new Date(
+            new Date().setDate(new Date().getDate() + diffStartDate)
+          ).setHours(0, 0, 0, 0)
+        ),
+        endDate: new Date(
+          new Date(
+            new Date().setDate(new Date().getDate() + diffEndDate)
+          ).setHours(23, 59, 59, 999)
+        ),
+      };
+
+    default:
+      throw new Error("Invalid type");
+  }
+};
+
+export const getJiraWorklogByTime = async ({
+  user,
+  type,
+  prevStart,
+  prevEnd,
+}: JiraWorklogByTimeRequest) => {
+  const fn = getFnJiraDates(type);
+  const query = `worklogAuthor =  ${user}  AND  worklogDate >= start${fn}(${
+    prevStart ?? ""
+  }) AND worklogDate < end${fn}(${prevEnd ?? ""})`;
+  console.log(query);
+
+  const resp = (await jira.searchJira(query, {
+    fields: [
+      "summary",
+      "description",
+      "worklog",
+      "customfield_11902",
+      "issuetype",
+      "customfield_13200",
+      "components",
+      "labels",
+      "parent",
+    ],
+  })) as JiraWorklogListResponse;
+
+  let flatWorklogs = resp.issues.reduce(
+    (worklogs, issue) => worklogs.concat(issue.fields.worklog.worklogs),
+    [] as Worklog[]
+  );
+
+  for (const issue of resp.issues) {
+    if (issue.fields.worklog.total > issue.fields.worklog.maxResults) {
+      const resp = await getJiraWorklogs(issue.key);
+      flatWorklogs = [...flatWorklogs, ...resp.worklogs];
+    }
+  }
+
+  const obj = checkIfWorklogIsInDateRange(type, prevStart, prevEnd);
+
+  console.log(obj);
+
+  const totalTimeInSecondsGroupByDay = flatWorklogs.reduce((acc, worklog) => {
+    if (
+      (worklog.author?.name === user || worklog.updateAuthor?.name === user) &&
+      new Date(worklog.started) > obj.startDate &&
+      new Date(worklog.started) < obj.endDate
+    ) {
+      const date = new Date(worklog.started).toLocaleDateString("en-US");
+      acc[date] = acc[date] ?? 0;
+      acc[date] += worklog.timeSpentSeconds;
+    }
+    return acc;
+  }, {} as { [key: string]: number });
+  console.log(totalTimeInSecondsGroupByDay);
+  const sum = Object.values(totalTimeInSecondsGroupByDay).reduce(
+    (acc, time) => acc + time,
+    0
+  );
+
+  const timeSpent = convertSecondsToHours(sum);
+  return timeSpent;
+};
+
+const convertSecondsToHours = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+
+export const mapPreConfiguredDates = (
+  obj: JiraWorklogPreConfiguredRequest
+): JiraWorklogByTimeRequest => {
+  switch (obj.type) {
+    case "currentMonth":
+      return { user: obj.user, type: "M", prevStart: 0, prevEnd: 1 };
+    case "currentWeek":
+      return { user: obj.user, type: "W" };
+    case "currentDay":
+      return { user: obj.user, type: "D" };
+    case "yesterday":
+      return { user: obj.user, type: "D", prevStart: -1, prevEnd: 0 };
+    case "lastWeek":
+      return { user: obj.user, type: "W", prevStart: -2, prevEnd: -1 };
+    case "lastMonth":
+      return { user: obj.user, type: "M", prevStart: -1, prevEnd: 0 };
+    default:
+      return { user: obj.user, type: "M" };
+  }
+};
 export default jira;
