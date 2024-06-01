@@ -22,7 +22,7 @@ export const startFastifyServer = async () => {
   server.register(fjwt, {
     secret: process.env.JWT_SECRET,
     sign: {
-      expiresIn: "1h",
+      expiresIn: "4h",
     },
   });
   server.register(fastifyStatic, {
