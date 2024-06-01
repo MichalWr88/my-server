@@ -3,8 +3,10 @@
     "https://json.schemastore.org/github-workflow.json": "/.github/workflows/*.yml"
   },
   "cSpell.words": [
+    "customfield",
     "fastify",
     "fjwt",
+    "issuetype",
     "tsbuildinfo",
     "typeorm",
     "Worklog",
