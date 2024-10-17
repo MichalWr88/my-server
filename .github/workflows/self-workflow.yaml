@@ -1,13 +1,13 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: self Workflow
 on:
-  workflow_dispatch:
   push:
     paths:
       - "./src/**.ts"
       - "package.json"
       - "tsconfig.json"
       - "./.github/workflows/self-workflow.yaml"
+  workflow_dispatch:
 
 jobs:
   # build:
@@ -69,6 +69,9 @@ jobs:
           echo DB_USERNAME=${{ secrets.DB_USERNAME }} >> .env
           echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
           echo DB_DATABASE=${{ secrets.DB_DATABASE }} >> .env
+          echo MIKRUS_KEY=${{ secrets.MIKRUS_KEY }} >> .env
+          echo MIKRUS_SRV=${{ secrets.MIKRUS_SRV }} >> .env
+          echo MIKRUS_HOST=${{ secrets.MIKRUS_HOST }} >> .env
       - run: npm run build
       - run: |
           npm run pm2-start 
