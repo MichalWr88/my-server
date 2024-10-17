@@ -92,6 +92,20 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     },
     searchJiraQueryPreConfigured
   );
+  server.get(
+    "/tasks/my/month",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        // body: $ref("JiraQueryDatesSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    searchJiraQueryPreConfigured
+  );
 
   server.log.info("jira routes registered");
 };

@@ -1,7 +1,7 @@
 import { MikrusMemoryData, MikrusStatusResponse } from "./mikrusSchemas";
 
 export class MikrusService {
-  private MIKRUS_API_URL: string = process.env.MIKRUS_HOST || "";
+  private MIKRUS_HOST: string = process.env.MIKRUS_HOST || "";
   private MIKRUS_SRV: string = process.env.MIKRUS_SRV || "";
   private MIKRUS_KEY: string = process.env.MIKRUS_KEY || "";
 
@@ -10,7 +10,7 @@ export class MikrusService {
   }
 
   private checkEnvForMikrus() {
-    if (!this.MIKRUS_API_URL || !this.MIKRUS_SRV || !this.MIKRUS_KEY) {
+    if (!this.MIKRUS_HOST || !this.MIKRUS_SRV || !this.MIKRUS_KEY) {
       throw new Error(
         "Please provide all the necessary environment variables for the Mikrus API connection"
       );
@@ -23,7 +23,7 @@ export class MikrusService {
         key: this.MIKRUS_KEY,
       });
 
-      const response = await fetch(`${this.MIKRUS_API_URL}${endpoint}`, {
+      const response = await fetch(`${this.MIKRUS_HOST}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
