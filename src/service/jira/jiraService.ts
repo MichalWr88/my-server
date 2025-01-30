@@ -7,6 +7,7 @@ import {
   JiraTaskRequest,
   JiraWorklogByTimeRequest,
   JiraWorklogPreConfiguredRequest,
+  LastSprintForRapidViewResponse,
 } from "./jiraSchema";
 import {
   JiraWorklogListResponse,
@@ -102,6 +103,32 @@ export const getJiraUsersInGroup = async (
 ): Promise<JiraApi.JsonResponse> => {
   return await jira.getUsersInGroup(groupname, startAt, maxResults);
 };
+export const getJiraBoard = async (
+  boardId: string
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getBoard(boardId);
+};
+export const getLastSprintForRapidView = async (
+  boardId: string
+): Promise<LastSprintForRapidViewResponse> => {
+  return (await jira.getLastSprintForRapidView(
+    boardId
+  )) as LastSprintForRapidViewResponse;
+};
+
+export const getSprint = async (
+  sprintId: string
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getSprint(sprintId);
+};
+
+export const getSprintIssues = async (
+  boardId: string,
+  sprintId: string
+): Promise<JiraApi.JsonResponse> => {
+  return await jira.getSprintIssues(boardId, sprintId);
+};
+
 export const getJiraUsersIssues = async (
   username: string,
   open: boolean
