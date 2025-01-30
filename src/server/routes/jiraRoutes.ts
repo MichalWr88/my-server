@@ -10,6 +10,10 @@ import {
   logJiraLoopDays,
   logJiraTime,
   searchJiraQueryPreConfigured,
+  getJiraBoardData,
+  getJiraSprint,
+  getJiraSprintIssues,
+  getJiraOrgTaskCurrentSprint,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -105,6 +109,64 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     searchJiraQueryPreConfigured
+  );
+  server.post(
+    "/active-sprint-from-board",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        body: $ref("JiraLastSprintForRapidViewRequestSchema"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    getJiraBoardData
+  );
+  server.post(
+    "/sprint",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        body: $ref("JiraSprintRequestSchema"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    getJiraSprint
+  );
+
+  server.post(
+    "/sprint-issues",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        body: $ref("JiraSprintIssuesRequestSchema"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    getJiraSprintIssues
+  );
+
+  server.post(
+    "/org-task-current-sprint",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
+        body: $ref("JiraLastSprintForRapidViewRequestSchema"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    getJiraOrgTaskCurrentSprint
   );
 
   server.log.info("jira routes registered");
