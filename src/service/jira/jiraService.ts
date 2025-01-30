@@ -4,6 +4,7 @@ import {
   JiraOfDay,
   JiraOfMonth,
   JiraOfWeek,
+  JiraSprintIssuesResponse,
   JiraTaskRequest,
   JiraWorklogByTimeRequest,
   JiraWorklogPreConfiguredRequest,
@@ -125,8 +126,21 @@ export const getSprint = async (
 export const getSprintIssues = async (
   boardId: string,
   sprintId: string
-): Promise<JiraApi.JsonResponse> => {
-  return await jira.getSprintIssues(boardId, sprintId);
+): Promise<JiraSprintIssuesResponse> => {
+  return (await jira.getSprintIssues(
+    boardId,
+    sprintId
+  )) as JiraSprintIssuesResponse;
+};
+export const getOrgTaskCurrentSprint = async (
+  boardId: string
+): Promise<string | null> => {
+  const sprint = await getLastSprintForRapidView(boardId);
+  const sprintIssues = await getSprintIssues(boardId, sprint.id.toString());
+  const orgIssue = sprintIssues.contents.issuesNotCompletedInCurrentSprint.find(
+    (issue) => (issue.summary === "Sprawy organizacyjne i spotkania")
+  );
+  return orgIssue?.key ?? null;
 };
 
 export const getJiraUsersIssues = async (
