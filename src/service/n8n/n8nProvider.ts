@@ -1,10 +1,15 @@
-const n8nWebhookCalendar =
-  "https://n8nmm.cytr.us/webhook/7e93d1d2-cc8e-481b-bbd2-0e2fb6373aa0";
 export type GoogleCalendarEvent = {
   summary: string;
   time: string;
   startTime: string;
 };
+if (!process.env.N8N_HOST || !process.env.N8N_WEBHOOK_CALENDAR) {
+  throw new Error(
+    "Please provide all the necessary environment variables for the N8N API connection"
+  );
+}
+const n8nWebhookCalendar =
+  process.env.N8N_HOST + process.env.N8N_WEBHOOK_CALENDAR;
 
 export const getCalendarEventsByDateRange = async (
   startDate: string,
