@@ -1,6 +1,10 @@
 import JiraApi from "jira-client";
 import { isWorkday } from "../../utils";
 import {
+  getCalendarEventsByDateRange,
+  GoogleCalendarEvent,
+} from "../n8n/n8nProvider";
+import {
   JiraOfDay,
   JiraOfMonth,
   JiraOfWeek,
@@ -9,6 +13,8 @@ import {
   JiraWorklogByTimeRequest,
   JiraWorklogPreConfiguredRequest,
   LastSprintForRapidViewResponse,
+  JiraLoopDaysRequest,
+  DayRecord,
 } from "./jiraSchema";
 import {
   JiraWorklogListResponse,
@@ -33,31 +39,39 @@ const formatJiraDate = (date: Date): string => {
     date.getMonth() + 1
   }-${date.getDate()}T${date.getHours()}:${date.getMinutes()}:00.000+0000`;
 };
+const findRecordByDay = (
+  records: DayRecord[],
+  dateArg: Date
+): DayRecord | undefined => {
+  const dayStr = dateArg.toISOString().split("T")[0];
+  return records.find((record) => record.day === dayStr);
+};
 
 export const loopDays = async ({
   startDate,
   endDate,
-  jiraTaskId,
   comment,
-  timeSpent,
-}: {
-  startDate: Date;
-  endDate: Date;
-  jiraTaskId: string;
-  comment: string;
-  timeSpent: string;
-}): Promise<void> => {
+  boardId,
+}: JiraLoopDaysRequest): Promise<void> => {
   const currentDate = new Date(startDate);
   const loopEndDate = new Date(endDate);
 
-  // eslint-disable-next-line no-unmodified-loop-condition
+  const calendar = await getCalendarEventsByDateRange(startDate, endDate);
+  const groupedByDay = groupByDay(calendar);
+  const orgTask = await getOrgTaskCurrentSprint(boardId.toString());
+  if (!orgTask) {
+    throw new Error("Org task not found");
+  }
+
   while (currentDate <= loopEndDate) {
     if (isWorkday(currentDate)) {
+      const result = findRecordByDay(groupedByDay, currentDate);
+
       await addJiraWorklog({
         date: currentDate,
-        jiraTaskId,
+        jiraTaskId: orgTask,
         comment,
-        timeSpent,
+        timeSpent: result?.decimal ?? "0",
       });
     } else {
       console.log("free");
@@ -138,7 +152,7 @@ export const getOrgTaskCurrentSprint = async (
   const sprint = await getLastSprintForRapidView(boardId);
   const sprintIssues = await getSprintIssues(boardId, sprint.id.toString());
   const orgIssue = sprintIssues.contents.issuesNotCompletedInCurrentSprint.find(
-    (issue) => (issue.summary === "Sprawy organizacyjne i spotkania")
+    (issue) => issue.summary === "Sprawy organizacyjne i spotkania"
   );
   return orgIssue?.key ?? null;
 };
@@ -337,3 +351,40 @@ export const mapPreConfiguredDates = (
   }
 };
 export default jira;
+
+// Helper to format milliseconds as decimal hours (e.g., "1.5")
+const formatTimeDecimal = (ms: number) => {
+  const hours = ms / (1000 * 60 * 60);
+  return hours.toFixed(1); // "1.5"
+};
+
+// Helper to format milliseconds as "Xh Ym" (e.g., "1h 30m")
+const formatTimeHMS = (ms: number) => {
+  const totalMinutes = Math.floor(ms / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${hours}h`;
+};
+
+const groupByDay = (entries: GoogleCalendarEvent[]): DayRecord[] => {
+  const dayMap: Record<string, number> = {};
+
+  entries.forEach((item) => {
+    const day = new Date(item.startTime).toISOString().split("T")[0];
+    const ms = parseInt(item.time, 10);
+    if (!dayMap[day]) {
+      dayMap[day] = 0;
+    }
+    dayMap[day] += ms;
+  });
+
+  // Convert the map to an array of objects with both decimal and "Xh Ym" formats
+  return Object.entries(dayMap).map(([day, totalMs]) => ({
+    day,
+    decimal: formatTimeDecimal(totalMs),
+    jiraFormat: formatTimeHMS(totalMs),
+  }));
+};
