@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { buildJsonSchemas } from "fastify-zod";
+import { parse, isValid } from "date-fns";
+
 //
 const JiraTaskSchemaRequest = z.object({
   date: z.date(),
@@ -56,13 +58,21 @@ const JiraWorklogPreConfiguredSchemaRequest = z.object({
 export type JiraWorklogPreConfiguredRequest = z.infer<
   typeof JiraWorklogPreConfiguredSchemaRequest
 >;
-
+// Validate a date string in "YYYY-MM-DD" format
+export const DateStringSchema = z.string().refine(
+  (val) => {
+    const parsed = parse(val, "yyyy-MM-dd", new Date());
+    return isValid(parsed);
+  },
+  {
+    message: "Must be a valid date in YYYY-MM-DD format",
+  }
+);
 const JiraLoopDaysSchemaRequest = z.object({
-  startDate: z.date(),
-  endDate: z.date(),
-  jiraTaskId: z.string(),
+  startDate: DateStringSchema,
+  endDate: DateStringSchema,
   comment: z.string(),
-  timeSpent: z.string(),
+  boardId: z.number(),
 });
 export type JiraLoopDaysRequest = z.infer<typeof JiraLoopDaysSchemaRequest>;
 
@@ -283,6 +293,14 @@ export type JiraSprintIssuesResponse = z.infer<
   typeof JiraSprintIssuesResponseSchema
 >;
 /*  ---------------------------  */
+export const DayRecordSchema = z.object({
+  day: z.string(),
+  decimal: z.string(),
+  jiraFormat: z.string(),
+});
+
+export type DayRecord = z.infer<typeof DayRecordSchema>;
+
 
 export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
   {
