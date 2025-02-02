@@ -23,7 +23,7 @@ import {
 type fnJiraDates = "OfMonth" | "OfWeek" | "OfDay";
 
 if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
-  throw new Error("Missing env variables");
+  throw new Error("Please provide all the necessary environment variables for the Jira API connection");
 }
 
 const jira = new JiraApi({
