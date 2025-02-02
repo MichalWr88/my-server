@@ -47,13 +47,12 @@ export const logJiraLoopDays = async (
   reply: FastifyReply
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
-    const { comment, startDate, endDate, jiraTaskId, timeSpent } = req.body;
+    const { comment, startDate, endDate, boardId } = req.body;
     const jiraResp = await loopDays({
       comment,
       startDate,
       endDate,
-      jiraTaskId,
-      timeSpent,
+      boardId,
     });
     console.log(jiraResp);
     return reply.code(200).send({ message: "success" });
