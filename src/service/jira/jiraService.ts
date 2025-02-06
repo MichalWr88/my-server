@@ -23,7 +23,9 @@ import {
 type fnJiraDates = "OfMonth" | "OfWeek" | "OfDay";
 
 if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
-  throw new Error("Please provide all the necessary environment variables for the Jira API connection");
+  throw new Error(
+    "Please provide all the necessary environment variables for the Jira API connection"
+  );
 }
 
 const jira = new JiraApi({
@@ -104,7 +106,20 @@ export const searchJira = async (
   searchString: string,
   searchQuery?: JiraApi.SearchQuery
 ): Promise<JiraApi.IssueObject> => {
-  return await jira.searchJira(searchString, searchQuery);
+  const searchQueryObj = searchQuery ?? {
+    fields: [
+      "summary",
+      "description",
+      "worklog",
+      "customfield_11902",
+      "issuetype",
+      "customfield_13200",
+      "components",
+      "labels",
+      "parent",
+    ],
+  };
+  return await jira.searchJira(searchString, searchQueryObj);
 };
 export const getJiraSprint = async (
   sprintId: string
@@ -272,7 +287,7 @@ export const getJiraWorklogByTime = async ({
   }) AND worklogDate < end${fn}(${prevEnd ?? ""})`;
   console.log(query);
 
-  const resp = (await jira.searchJira(query, {
+  const resp = (await searchJira(query, {
     fields: [
       "summary",
       "description",
