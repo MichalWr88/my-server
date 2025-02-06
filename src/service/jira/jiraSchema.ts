@@ -2,6 +2,20 @@ import { z } from "zod";
 import { buildJsonSchemas } from "fastify-zod";
 import { parse, isValid } from "date-fns";
 
+const JiraSearchQueryParamsSchema = z.object({
+  startAt: z.number().optional(),
+  maxResults: z.number().optional(),
+  fields: z.array(z.string()).optional(),
+  expand: z.array(z.string()).optional(),
+});
+
+export type JiraSearchQueryParams = z.infer<typeof JiraSearchQueryParamsSchema>;
+
+const JiraSearchSchema = z.object({
+  query: z.string(),
+  params: JiraSearchQueryParamsSchema.optional(),
+});
+export type JiraSearchParams = z.infer<typeof JiraSearchSchema>;
 //
 const JiraTaskSchemaRequest = z.object({
   date: z.date(),
@@ -301,7 +315,6 @@ export const DayRecordSchema = z.object({
 
 export type DayRecord = z.infer<typeof DayRecordSchema>;
 
-
 export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
   {
     JiraSprintIssuesRequestSchema,
@@ -327,6 +340,7 @@ export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
     StatusStatusSchema,
     StatusValueSchema,
     TypeSchema,
+    JiraSearchSchema,
   },
   { $id: "jiraSchema" }
 );
