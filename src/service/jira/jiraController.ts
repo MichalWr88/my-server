@@ -3,6 +3,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
   JiraLastSprintForRapidViewRequest,
   JiraLoopDaysRequest,
+  JiraSearchParams,
   JiraSprintIssuesRequest,
   JiraSprintRequest,
   JiraTaskRequest,
@@ -19,6 +20,7 @@ import {
   getSprintIssues,
   getSprint,
   getOrgTaskCurrentSprint,
+  searchJira,
 } from "./jiraService";
 export const logJiraTime = async (
   req: FastifyRequest<{
@@ -61,6 +63,21 @@ export const logJiraLoopDays = async (
   }
 };
 export const searchJiraQuery = async (
+  req: FastifyRequest<{
+    Body: JiraSearchParams;
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse | undefined> => {
+  try {
+    const { query, params } = req.body;
+    const jiraResp = await searchJira(query, params);
+    console.log(jiraResp);
+    return reply.code(200).send(jiraResp);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+export const searchJiraWorklogByTime = async (
   req: FastifyRequest<{
     Body: JiraWorklogByTimeRequest;
   }>,
