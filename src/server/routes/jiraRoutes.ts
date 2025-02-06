@@ -10,10 +10,11 @@ import {
   logJiraLoopDays,
   logJiraTime,
   searchJiraQueryPreConfigured,
-  getJiraBoardData,
   getJiraSprint,
   getJiraSprintIssues,
   getJiraOrgTaskCurrentSprint,
+  getLastSprintForRapidViewData,
+  searchJiraWorklogByTime,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -49,9 +50,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       preHandler: [server.authenticate],
       schema: {
         body: $ref("JiraTaskSchemaRequest"),
-        // response: {
-        //   201: $ref("createUserResponseSchema"),
-        // },
+
       },
     },
     logJiraTime
@@ -74,13 +73,26 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraQueryDatesSchemaRequest"),
+        body: $ref("JiraSearchSchema"),
         // response: {
         //   201: $ref("createUserResponseSchema"),
         // },
       },
     },
     searchJiraQuery
+  );
+  server.post(
+    "/tasks/worklog",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        body: $ref("JiraQueryDatesSchemaRequest"),
+        // response: {
+        //   201: $ref("createUserResponseSchema"),
+        // },
+      },
+    },
+    searchJiraWorklogByTime
   );
   server.get(
     "/tasks/search/pre-configured",
@@ -122,7 +134,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
         // },
       },
     },
-    getJiraBoardData
+    getLastSprintForRapidViewData
   );
   server.post(
     "/sprint",
