@@ -16,6 +16,12 @@ const JiraSearchSchema = z.object({
   params: JiraSearchQueryParamsSchema.optional(),
 });
 export type JiraSearchParams = z.infer<typeof JiraSearchSchema>;
+
+const JiraGetIssueSchema = z.object({
+  fields: z.union([z.array(z.string()), z.string()]).optional(),
+});
+export type JiraGetIssue = z.infer<typeof JiraGetIssueSchema>;
+
 //
 const JiraTaskSchemaRequest = z.object({
   date: z.date(),
@@ -341,6 +347,7 @@ export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
     StatusValueSchema,
     TypeSchema,
     JiraSearchSchema,
+    JiraGetIssueSchema,
   },
   { $id: "jiraSchema" }
 );

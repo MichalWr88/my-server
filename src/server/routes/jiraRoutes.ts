@@ -15,6 +15,7 @@ import {
   getJiraOrgTaskCurrentSprint,
   getLastSprintForRapidViewData,
   searchJiraWorklogByTime,
+  getIssueFromJira,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -45,12 +46,22 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     }
   );
   server.post(
+    "/task/:id",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        params: $ref("JIraTaskIdSchema"),
+        body: $ref("JiraGetIssueSchema"),
+      },
+    },
+    getIssueFromJira
+  );
+  server.post(
     "/task/log-time",
     {
       preHandler: [server.authenticate],
       schema: {
         body: $ref("JiraTaskSchemaRequest"),
-
       },
     },
     logJiraTime

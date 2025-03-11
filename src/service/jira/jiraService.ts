@@ -98,9 +98,10 @@ export const getCurrentJiraUser = async (): Promise<JiraApi.JsonResponse> => {
   return await jira.getCurrentUser();
 };
 export const getJiraIssue = async (
-  id: string
+  id: string,
+  fields?: string | string[]
 ): Promise<JiraApi.IssueObject> => {
-  return await jira.getIssue(id);
+  return await jira.getIssue(id, fields);
 };
 export const searchJira = async (
   searchString: string,
@@ -403,3 +404,97 @@ const groupByDay = (entries: GoogleCalendarEvent[]): DayRecord[] => {
     jiraFormat: formatTimeHMS(totalMs),
   }));
 };
+
+export function parseJiraSprintData(resp: JiraSprintIssuesResponse) {
+  const { sprint, contents } = resp;
+  const {
+    entityData,
+    completedIssues,
+    issuesNotCompletedInCurrentSprint,
+    issuesCompletedInAnotherSprint,
+    issueKeysAddedDuringSprint,
+  } = contents;
+
+  // Gather all issues in one array
+  const allIssues = [
+    ...completedIssues,
+    ...issuesNotCompletedInCurrentSprint,
+    ...issuesCompletedInAnotherSprint,
+  ];
+
+  // Group issues by typeName
+  const issuesByType: Record<string, { typeName: string; issues: any[] }> = {};
+
+  allIssues.forEach((issue) => {
+    const typeName = entityData.types[issue.typeId]?.typeName || "Unknown";
+    const statusName =
+      entityData.statuses[issue.statusId]?.statusName || "Unknown";
+    const epicText = issue.epicId
+      ? entityData.epics[issue.epicId]?.epicField?.text
+      : undefined;
+    const isExtra = !!issueKeysAddedDuringSprint[issue.key];
+
+    if (!issuesByType[typeName]) {
+      issuesByType[typeName] = { typeName, issues: [] };
+    }
+    issuesByType[typeName].issues.push({
+      key: issue.key,
+      summary: issue.summary,
+      status: statusName,
+      type: typeName,
+      epic: epicText,
+      extra: isExtra,
+    });
+  });
+
+  return {
+    sprintName: sprint.name,
+    sprintGoal: sprint.goal,
+    issuesByType: Object.values(issuesByType),
+  };
+}
+
+export function formatItemsForGoogleSlides(
+  items: Array<{
+    key: string;
+    summary: string;
+    status: string;
+    type: string;
+    epic: string;
+    extra: boolean;
+  }>
+): string {
+  // Header row (tab-separated)
+  let result = "Key\tSummary\tStatus\tType\tEpic\tExtra\n";
+
+  // Each item as a tab-separated row
+  for (const item of items) {
+    result += `${item.key}\t${item.summary}\t${item.status}\t${item.type}\t${item.epic}\t${item.extra}\n`;
+  }
+
+  // You can just copy the returned string and paste it into Google Slides
+  return result;
+}
+
+export function formatItemsAsCSV(
+  items: Array<{
+    key: string;
+    summary: string;
+    status: string;
+    epic: string;
+    extra: boolean;
+  }>
+): string {
+  // Header row (no 'type' column)
+  let result = "Key;Summary;Status;Epic\n";
+
+  for (const item of items) {
+    // Wrap key in [] and add '*' if 'extra' is true
+    const keyWithBrackets = item.extra ? `[${item.key}]*` : `[${item.key}]`;
+
+    // Semicolon-separated row (no 'type' field)
+    result += `${keyWithBrackets};${item.summary};${item.status};${item.epic}\n`;
+  }
+
+  return result;
+}

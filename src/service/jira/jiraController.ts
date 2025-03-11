@@ -1,10 +1,12 @@
 import JiraApi from "jira-client";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
+  JiraGetIssue,
   JiraLastSprintForRapidViewRequest,
   JiraLoopDaysRequest,
   JiraSearchParams,
   JiraSprintIssuesRequest,
+  JiraSprintIssuesResponse,
   JiraSprintRequest,
   JiraTaskRequest,
   JiraWorklogByTimeRequest,
@@ -21,6 +23,9 @@ import {
   getSprint,
   getOrgTaskCurrentSprint,
   searchJira,
+  parseJiraSprintData,
+  formatItemsForGoogleSlides,
+  getJiraIssue,
 } from "./jiraService";
 export const logJiraTime = async (
   req: FastifyRequest<{
@@ -77,6 +82,27 @@ export const searchJiraQuery = async (
     return reply.code(500).send(e);
   }
 };
+
+export const getIssueFromJira = async (
+  req: FastifyRequest<{
+    Params: { id: string };
+    Body: JiraGetIssue;
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse | undefined> => {
+  try {
+    const {
+      body: { fields },
+      params,
+    } = req;
+    const jiraResp = await getJiraIssue(params.id, fields);
+    console.log(jiraResp);
+    return reply.code(200).send(jiraResp);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+
 export const searchJiraWorklogByTime = async (
   req: FastifyRequest<{
     Body: JiraWorklogByTimeRequest;
@@ -166,13 +192,15 @@ export const getJiraSprintIssues = async (
     Body: JiraSprintIssuesRequest;
   }>,
   reply: FastifyReply
-): Promise<JiraApi.JsonResponse | undefined> => {
+): Promise<JiraSprintIssuesResponse | undefined> => {
   const { boardId, sprintId } = req.body;
   try {
     const jiraResp = await getSprintIssues(
       boardId.toString(),
       sprintId.toString()
     );
+    const formattedData = parseJiraSprintData(jiraResp);
+    formatItemsForGoogleSlides(formattedData.issuesByType[0].issues);
     return reply.code(200).send(jiraResp);
   } catch (e) {
     return reply.code(500).send(e);
