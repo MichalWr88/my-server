@@ -72,6 +72,9 @@ jobs:
           echo MIKRUS_KEY=${{ secrets.MIKRUS_KEY }} >> .env
           echo MIKRUS_SRV=${{ secrets.MIKRUS_SRV }} >> .env
           echo MIKRUS_HOST=${{ secrets.MIKRUS_HOST }} >> .env
+          echo N8N_HOST=${{ secrets.N8N_HOST }} >> .env
+          echo N8N_WEBHOOK_CALENDAR=${{ secrets.N8N_WEBHOOK_CALENDAR }} >> .env
+
       - run: npm run build
       - run: |
           npm run pm2-start 
