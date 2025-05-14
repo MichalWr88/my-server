@@ -12,10 +12,10 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "typeorm-sync": "typeorm-ts-node-commonjs schema:sync",
     "bump-git-patch": "bump patch --commit --push",
-    "bump-git-prepatch": "npx bump prepatch --commit --push",
-    "bump-git-prerelease": "npx bump prerelease --commit --push",
-    "bump-git-minor": "npx bump minor --commit --push",
-    "bump-git-major": "npx bump major --commit --push"
+    "bump-git-prepatch": "bump prepatch --commit --push",
+    "bump-git-prerelease": "bump prerelease --commit --push",
+    "bump-git-minor": "bump minor --commit --push",
+    "bump-git-major": "bump major --commit --push"
   },
   "author": "",
   "license": "ISC",
