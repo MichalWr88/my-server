@@ -1,6 +1,7 @@
 import JiraApi from "jira-client";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
+  JiraEditIssueRequest,
   JiraGetIssue,
   JiraLastSprintForRapidViewRequest,
   JiraLoopDaysRequest,
@@ -26,6 +27,7 @@ import {
   parseJiraSprintData,
   formatItemsForGoogleSlides,
   getJiraIssue,
+  editIssue,
 } from "./jiraService";
 export const logJiraTime = async (
   req: FastifyRequest<{
@@ -216,6 +218,21 @@ export const getJiraOrgTaskCurrentSprint = async (
   const { boardId } = req.body;
   try {
     const jiraResp = await getOrgTaskCurrentSprint(boardId.toString());
+    return reply.code(200).send(jiraResp);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+
+export const editJiraIssue = async (
+  req: FastifyRequest<{
+    Body: JiraEditIssueRequest;
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse | undefined> => {
+  try {
+    const { issueId, fields } = req.body;
+    const jiraResp = await editIssue(issueId, fields);
     return reply.code(200).send(jiraResp);
   } catch (e) {
     return reply.code(500).send(e);

@@ -321,6 +321,12 @@ export const DayRecordSchema = z.object({
 
 export type DayRecord = z.infer<typeof DayRecordSchema>;
 
+const JiraEditIssueSchemaRequest = z.object({
+  issueId: z.string(),
+  fields: z.record(z.string(), z.any()),
+});
+export type JiraEditIssueRequest = z.infer<typeof JiraEditIssueSchemaRequest>;
+
 export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
   {
     JiraSprintIssuesRequestSchema,
@@ -348,6 +354,7 @@ export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
     TypeSchema,
     JiraSearchSchema,
     JiraGetIssueSchema,
+    JiraEditIssueSchemaRequest,
   },
   { $id: "jiraSchema" }
 );

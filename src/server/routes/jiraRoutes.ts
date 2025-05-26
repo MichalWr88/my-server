@@ -16,6 +16,7 @@ import {
   getLastSprintForRapidViewData,
   searchJiraWorklogByTime,
   getIssueFromJira,
+  editJiraIssue,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -190,6 +191,19 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     getJiraOrgTaskCurrentSprint
+  );
+  server.post(
+    "/task/edit",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        body: $ref("JiraEditIssueSchemaRequest"),
+        // response: {
+        //   200: $ref("SomeResponseSchema"),
+        // },
+      },
+    },
+    editJiraIssue
   );
 
   server.log.info("jira routes registered");

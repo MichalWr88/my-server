@@ -498,3 +498,12 @@ export function formatItemsAsCSV(
 
   return result;
 }
+
+export function editIssue(
+  issueId: string,
+  fields: Record<string, any>
+): Promise<JiraApi.JsonResponse> {
+  return jira.updateIssue(issueId, {
+    fields,
+  });
+}
