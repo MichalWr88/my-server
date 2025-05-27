@@ -19,6 +19,7 @@ import {
   editJiraIssue,
   copyComponentsToLabels,
   getJiraBoardData,
+  copyComponentsToLabelsForSprintIssues,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -229,6 +230,16 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     getJiraBoardData
+  );
+  server.get(
+    "/sprint/:id/copy-components-to-labels",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        params: $ref("JIraTaskIdSchema"),
+      },
+    },
+    copyComponentsToLabelsForSprintIssues
   );
 
   server.log.info("jira routes registered");

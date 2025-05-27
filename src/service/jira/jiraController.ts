@@ -29,7 +29,11 @@ import {
   getJiraIssue,
   editIssue,
 } from "./jiraService";
-import { Fields, Issue } from "./models/jiraSchemaQueryWorklog";
+import {
+  Fields,
+  Issue,
+  JiraWorklogListResponse,
+} from "./models/jiraSchemaQueryWorklog";
 export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
@@ -256,6 +260,61 @@ export const copyComponentsToLabels = async (
     return await editIssue(id, {
       labels: [...issue.fields.labels, ...componentsNames],
     });
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+export const copyComponentsToLabelsForSprintIssues = async (
+  req: FastifyRequest<{
+    Params: { id: string };
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse> => {
+  try {
+    const { id } = req.params;
+
+    const data = {
+      query: `Sprint = ${id} and issuetype != Sub-task`,
+      params: {
+        fields: [
+          "summary",
+          "description",
+          "worklog",
+          "status",
+          "customfield_11902",
+          "issuetype",
+          "customfield_13200",
+          "components",
+          "labels",
+          "parent",
+        ],
+      },
+    };
+    const response = (await searchJira(
+      data.query,
+      data.params
+    )) as JiraWorklogListResponse;
+    const results = await Promise.all(
+      response.issues.map(async (issue: Issue) => {
+        try {
+          const componentsNames = issue.fields.components.map(
+            (c) => c.name
+          );
+          const labels = issue.fields.labels;
+          
+          if (componentsNames.length > 0) {
+            const updatedLabels = [...labels, ...componentsNames];
+            const result = await editIssue(issue.id, { labels: updatedLabels });
+            return { id: issue.key, success: true, result };
+          }
+          return { id: issue.key, success: true, message: "No components to copy" };
+        } catch (error) {
+          return { id: issue.key, success: false, error: (error as Error).message };
+        }
+      })
+    );
+
+    return reply.code(200).send({ results });
   } catch (e) {
     return reply.code(500).send(e);
   }
