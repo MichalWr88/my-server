@@ -1,6 +1,6 @@
 {
   "name": "my-server",
-  "version": "0.0.14",
+  "version": "0.1.0",
   "description": "",
   "packageManager": "npm@9.6.7",
   "main": "index.js",
@@ -23,6 +23,7 @@
     "@fastify/cookie": "^9.3.1",
     "@fastify/jwt": "^8.0.1",
     "@fastify/static": "^7.0.3",
+    "@jsdevtools/version-bump-prompt": "^6.1.0",
     "@prisma/client": "^5.13.0",
     "@types/jira-client": "^7.1.9",
     "date-fns": "^4.1.0",
