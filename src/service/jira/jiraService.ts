@@ -102,7 +102,7 @@ export const getJiraIssue = async (
   id: string,
   fields?: string | string[]
 ): Promise<Issue> => {
-  return await jira.getIssue(id, fields) as Promise<Issue>;
+  return (await jira.getIssue(id, fields)) as Promise<Issue>;
 };
 export const searchJira = async (
   searchString: string,
@@ -138,7 +138,9 @@ export const getJiraUsersInGroup = async (
 export const getJiraBoard = async (
   boardId: string
 ): Promise<JiraApi.JsonResponse> => {
-  return await jira.getBoard(boardId);
+  const response = await jira.listSprints(boardId);
+  console.log(response,boardId);
+  return response;
 };
 export const getLastSprintForRapidView = async (
   boardId: string
@@ -508,4 +510,3 @@ export function editIssue(
     fields,
   });
 }
-

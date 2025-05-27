@@ -150,11 +150,14 @@ export const searchJiraQueryPreConfigured = async (
 };
 
 export const getJiraBoardData = async (
-  req: FastifyRequest,
+  req: FastifyRequest<{
+    Params: { id: string };
+  }>,
   reply: FastifyReply
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
-    const jiraResp = await getJiraBoard("972");
+    const { id } = req.params;
+    const jiraResp = await getJiraBoard(id);
     return reply.code(200).send(jiraResp);
   } catch (e) {
     return reply.code(500).send(e);

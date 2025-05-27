@@ -18,6 +18,7 @@ import {
   getIssueFromJira,
   editJiraIssue,
   copyComponentsToLabels,
+  getJiraBoardData,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -218,6 +219,16 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     copyComponentsToLabels
+  );
+  server.get(
+    "/board/:id/sprints-list",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        params: $ref("JIraTaskIdSchema"),
+      },
+    },
+    getJiraBoardData
   );
 
   server.log.info("jira routes registered");
