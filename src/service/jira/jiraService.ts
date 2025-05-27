@@ -17,6 +17,7 @@ import {
   DayRecord,
 } from "./jiraSchema";
 import {
+  Issue,
   JiraWorklogListResponse,
   Worklog,
 } from "./models/jiraSchemaQueryWorklog";
@@ -100,8 +101,8 @@ export const getCurrentJiraUser = async (): Promise<JiraApi.JsonResponse> => {
 export const getJiraIssue = async (
   id: string,
   fields?: string | string[]
-): Promise<JiraApi.IssueObject> => {
-  return await jira.getIssue(id, fields);
+): Promise<Issue> => {
+  return await jira.getIssue(id, fields) as Promise<Issue>;
 };
 export const searchJira = async (
   searchString: string,
@@ -507,3 +508,4 @@ export function editIssue(
     fields,
   });
 }
+

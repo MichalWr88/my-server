@@ -29,6 +29,7 @@ import {
   getJiraIssue,
   editIssue,
 } from "./jiraService";
+import { Fields, Issue } from "./models/jiraSchemaQueryWorklog";
 export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
@@ -234,6 +235,24 @@ export const editJiraIssue = async (
     const { issueId, fields } = req.body;
     const jiraResp = await editIssue(issueId, fields);
     return reply.code(200).send(jiraResp);
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+
+export const copyComponentsToLabels = async (
+  req: FastifyRequest<{
+    Params: { id: string };
+  }>,
+  reply: FastifyReply
+): Promise<JiraApi.JsonResponse> => {
+  try {
+    const { id } = req.params;
+    const issue = await getJiraIssue(id, ["components", "labels"]);
+    const componentsNames = issue.fields.components.map((c) => c.name);
+    return await editIssue(id, {
+      labels: [...issue.fields.labels, ...componentsNames],
+    });
   } catch (e) {
     return reply.code(500).send(e);
   }

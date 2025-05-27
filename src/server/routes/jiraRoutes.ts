@@ -17,6 +17,7 @@ import {
   searchJiraWorklogByTime,
   getIssueFromJira,
   editJiraIssue,
+  copyComponentsToLabels,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -204,6 +205,19 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     editJiraIssue
+  );
+  server.get(
+    "/task/:id/copy-components-to-labels",
+    {
+      preHandler: [server.authenticate],
+      schema: {
+        params: $ref("JIraTaskIdSchema"),
+        // response: {
+        //   200: $ref("SomeResponseSchema"),
+        // },
+      },
+    },
+    copyComponentsToLabels
   );
 
   server.log.info("jira routes registered");
