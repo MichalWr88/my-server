@@ -297,24 +297,157 @@ export const copyComponentsToLabelsForSprintIssues = async (
     const results = await Promise.all(
       response.issues.map(async (issue: Issue) => {
         try {
-          const componentsNames = issue.fields.components.map(
-            (c) => c.name
-          );
+          const componentsNames = issue.fields.components.map((c) => c.name);
           const labels = issue.fields.labels;
-          
+
           if (componentsNames.length > 0) {
             const updatedLabels = [...labels, ...componentsNames];
             const result = await editIssue(issue.id, { labels: updatedLabels });
             return { id: issue.key, success: true, result };
           }
-          return { id: issue.key, success: true, message: "No components to copy" };
+          return {
+            id: issue.key,
+            success: true,
+            message: "No components to copy",
+          };
         } catch (error) {
-          return { id: issue.key, success: false, error: (error as Error).message };
+          return {
+            id: issue.key,
+            success: false,
+            error: (error as Error).message,
+          };
         }
       })
     );
 
     return reply.code(200).send({ results });
+  } catch (e) {
+    return reply.code(500).send(e);
+  }
+};
+
+export const getGroupedSprintIssues = async (
+  req: FastifyRequest,
+  reply: FastifyReply
+): Promise<any> => {
+  try {
+    const query = "Sprint = 10906 and issuetype != Sub-task";
+    const params = {
+      fields: [
+        "summary",
+        "description",
+        "worklog",
+        "status",
+        "customfield_11902",
+        "issuetype",
+        "customfield_13200",
+        "components",
+        "labels",
+        "parent",
+      ],
+    };
+
+    const response = await searchJira(query, params);
+    const issues = response.issues;
+
+    // Define projects with their keys
+    const projects = [
+      {
+        name: "Company Monitor",
+        keys: ["CM", "Company Monitor", "company-monitor"],
+      },
+      {
+        name: "Company Data Provider",
+        keys: ["CDP", "Company Data Provider", "company-data-provider"],
+      },
+      {
+        name: "Company Verifications",
+        keys: ["CV", "Company Verifications", "company-verifications"],
+      },
+      {
+        name: "Company Statuses",
+        keys: ["CS", "Company Statuses", "company-statuses"],
+      },
+      {
+        name: "Payments Gateway",
+        keys: ["PG", "Payments Gateway", "payments-gateway"],
+      },
+      {
+        name: "Customer Extended Data Center",
+        keys: [
+          "CEDC",
+          "Customer Extended Data Center",
+          "customer-extended-data-center",
+        ],
+      },
+    ];
+    // Helper to check if any project key is present in a string (case-insensitive)
+    function hasProjectKey(str: string, keys: string[]): boolean {
+      if (!str) return false;
+      const lower = str.toLowerCase();
+      return keys.some((key) => lower.includes(key.toLowerCase()));
+    }
+
+    // Group issues by project and then by issue type
+    const grouped: Record<string, Record<string, string[]>> = {};
+    for (const project of projects) {
+      grouped[project.name] = {};
+    }
+    grouped["Other"] = {};
+
+    for (const issue of issues) {
+      const summary = issue.fields.summary || "";
+      const description = issue.fields.description || "";
+      const components = (issue.fields.components || [])
+        .map((c: any) => c.name)
+        .join(" ");
+      const labels = (issue.fields.labels || []).join(" ");
+      const issueType = issue.fields.issuetype?.name || "Unknown";
+      const line = `[${issue.key}|${issue.self}] - ${summary}`;
+
+      let projectName = "Other";
+      for (const project of projects) {
+        if (
+          hasProjectKey(summary, project.keys) ||
+          hasProjectKey(description, project.keys) ||
+          hasProjectKey(components, project.keys) ||
+          hasProjectKey(labels, project.keys)
+        ) {
+          projectName = project.name;
+          break;
+        }
+      }
+
+      if (!grouped[projectName][issueType]) {
+        grouped[projectName][issueType] = [];
+      }
+      grouped[projectName][issueType].push(line);
+    }
+
+    // Format output
+    const output: string[] = [];
+    for (const project of projects) {
+      if (Object.keys(grouped[project.name]).length) {
+        output.push(`# ${project.name}`);
+        for (const [issueType, lines] of Object.entries(
+          grouped[project.name]
+        )) {
+          output.push(`## ${issueType}`);
+          output.push(...lines);
+          output.push("");
+        }
+      }
+    }
+    if (Object.keys(grouped["Other"]).length) {
+      output.push(`# Other`);
+      for (const [issueType, lines] of Object.entries(grouped["Other"])) {
+        output.push(`## ${issueType}`);
+        output.push(...lines);
+        output.push("");
+      }
+    }
+
+    return reply.code(200).send(grouped);
   } catch (e) {
     return reply.code(500).send(e);
   }

@@ -20,6 +20,7 @@ import {
   copyComponentsToLabels,
   getJiraBoardData,
   copyComponentsToLabelsForSprintIssues,
+  getGroupedSprintIssues,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -240,6 +241,13 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       },
     },
     copyComponentsToLabelsForSprintIssues
+  );
+  server.get(
+    "/sprint/current/grouped-issues",
+    {
+      preHandler: [server.authenticate],
+    },
+    getGroupedSprintIssues
   );
 
   server.log.info("jira routes registered");
