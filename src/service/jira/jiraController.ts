@@ -34,6 +34,9 @@ import {
   Issue,
   JiraWorklogListResponse,
 } from "./models/jiraSchemaQueryWorklog";
+
+c;
+
 export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
@@ -403,7 +406,7 @@ export const getGroupedSprintIssues = async (
         .join(" ");
       const labels = (issue.fields.labels || []).join(" ");
       const issueType = issue.fields.issuetype?.name || "Unknown";
-      const line = `[${issue.key}|${issue.self}] - ${summary}`;
+      const line = `[${issue.key}| https://${process.env.JIRA_HOST}/${issue.key}] - ${summary}`;
 
       let projectName = "Other";
       for (const project of projects) {
