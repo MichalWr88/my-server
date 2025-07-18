@@ -35,8 +35,6 @@ import {
   JiraWorklogListResponse,
 } from "./models/jiraSchemaQueryWorklog";
 
-c;
-
 export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
@@ -334,8 +332,8 @@ export const getGroupedSprintIssues = async (
   reply: FastifyReply
 ): Promise<any> => {
   try {
-      const jiraResp = await getLastSprintForRapidView("972");
-      const sprintId = jiraResp.id
+    const jiraResp = await getLastSprintForRapidView("972");
+    const sprintId = jiraResp.id;
     const query = `Sprint = ${sprintId} and issuetype != Sub-task`;
     const params = {
       fields: [
