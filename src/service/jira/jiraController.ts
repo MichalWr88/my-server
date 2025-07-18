@@ -334,7 +334,9 @@ export const getGroupedSprintIssues = async (
   reply: FastifyReply
 ): Promise<any> => {
   try {
-    const query = "Sprint = 10906 and issuetype != Sub-task";
+      const jiraResp = await getLastSprintForRapidView("972");
+      const sprintId = jiraResp.id
+    const query = `Sprint = ${sprintId} and issuetype != Sub-task`;
     const params = {
       fields: [
         "summary",
