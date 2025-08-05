@@ -353,7 +353,6 @@ export const getGroupedSprintIssues = async (
     const response = await searchJira(query, params);
     const issues = response.issues;
 
-    // Define projects with their keys
     const projects = [
       {
         name: "Company Monitor",
@@ -406,7 +405,8 @@ export const getGroupedSprintIssues = async (
         .join(" ");
       const labels = (issue.fields.labels || []).join(" ");
       const issueType = issue.fields.issuetype?.name || "Unknown";
-      const line = `[${issue.key}| https://${process.env.JIRA_HOST}/${issue.key}] - ${summary}`;
+      const issueStatus = issue.fields.status?.name || "Unknown";
+      const line = `[${issue.key}| https://${process.env.JIRA_HOST}/${issue.key}][${issueStatus}] - ${summary}`;
 
       let projectName = "Other";
       for (const project of projects) {
