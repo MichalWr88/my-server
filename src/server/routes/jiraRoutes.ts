@@ -22,6 +22,7 @@ import {
   copyComponentsToLabelsForSprintIssues,
   copyComponentsToLabelsForCurrentSprint,
   getGroupedSprintIssues,
+  getGroupedSprintIssuesHTML,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -249,6 +250,13 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       preHandler: [server.authenticate],
     },
     getGroupedSprintIssues
+  );
+  server.get(
+    "/sprint/current/grouped-issues-html",
+    {
+      preHandler: [server.authenticate],
+    },
+    getGroupedSprintIssuesHTML
   );
   server.get(
     "/sprint/current/copy-components-to-labels",
