@@ -383,28 +383,28 @@ export const getGroupedSprintIssues = async (
     const projects = [
       {
         name: "Company Monitor",
-        keys: ["CM", "Company Monitor", "company-monitor"],
+        keys: ["[CM]", "Company Monitor", "company-monitor"],
       },
       {
         name: "Company Data Provider",
-        keys: ["CDP", "Company Data Provider", "company-data-provider"],
+        keys: ["[CDP]", "Company Data Provider", "company-data-provider"],
       },
       {
         name: "Company Verifications",
-        keys: ["CV", "Company Verifications", "company-verifications"],
+        keys: ["[CV]", "Company Verifications", "company-verifications"],
       },
       {
         name: "Company Statuses",
-        keys: ["CS", "Company Statuses", "company-statuses"],
+        keys: ["[CS]", "Company Statuses", "company-statuses"],
       },
       {
         name: "Payments Gateway",
-        keys: ["PG", "Payments Gateway", "payments-gateway"],
+        keys: ["[PG]", "Payments Gateway", "payments-gateway"],
       },
       {
         name: "Customer Extended Data Center",
         keys: [
-          "CEDC",
+          "[CEDC]",
           "Customer Extended Data Center",
           "customer-extended-data-center",
         ],
@@ -439,8 +439,8 @@ export const getGroupedSprintIssues = async (
       for (const project of projects) {
         if (
           hasProjectKey(summary, project.keys) ||
-          hasProjectKey(description, project.keys) ||
           hasProjectKey(components, project.keys) ||
+          hasProjectKey(description, project.keys) ||
           hasProjectKey(labels, project.keys)
         ) {
           projectName = project.name;
