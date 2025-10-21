@@ -35,6 +35,28 @@ import {
   JiraWorklogListResponse,
 } from "./models/jiraSchemaQueryWorklog";
 
+// Types for enhanced issue data
+interface EnhancedIssue {
+  key: string;
+  summary: string;
+  status: string;
+  type: string;
+  epic: string | undefined;
+  extra: boolean;
+  components: string[];
+  labels: string[];
+  description?: string;
+  assigneeName?: string;
+}
+
+interface GroupedByEpic {
+  [epicName: string]: {
+    [projectName: string]: {
+      [issueType: string]: EnhancedIssue[];
+    };
+  };
+}
+
 export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
@@ -212,7 +234,7 @@ export const getJiraSprintIssues = async (
     );
     const formattedData = parseJiraSprintData(jiraResp);
     formatItemsForGoogleSlides(formattedData.issuesByType[0].issues);
-    return reply.code(200).send(jiraResp);
+    return reply.code(200).send(formattedData);
   } catch (e) {
     return reply.code(500).send(e);
   }
@@ -510,6 +532,233 @@ const generateHTMLFromGroupedIssues = (
   return html;
 };
 
+const generateHTMLFromGroupedIssuesByEpic = (
+  groupedByEpic: GroupedByEpic,
+  sprintInfo?: { id: string; name: string }
+) => {
+  // Helper function to format status
+  const formatStatus = (status: string): string => {
+    if (status === "Ready for Deployment") return "RFD";
+    if (status === "W toku") return "In progress";
+    return status;
+  };
+
+  // Helper function to check if status is completed
+  const isCompletedStatus = (status: string): boolean => {
+    const completedStatuses = ["Closed", "Ready for Deployment", "Done"];
+    return completedStatuses.some(
+      (s) => status.toLowerCase() === s.toLowerCase()
+    );
+  };
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint Issues Report${
+      sprintInfo ? ` - ${sprintInfo.name}` : ""
+    }</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            font-weight: 700;
+            border-bottom: 3px solid #4a9eff;
+            padding-bottom: 15px;
+        }
+        h2 {
+            color: #a78bfa;
+            font-size: 1.8em;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            padding: 15px 0;
+            border-bottom: 2px solid #a78bfa;
+        }
+        h3 {
+            color: #60a5fa;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            padding-left: 10px;
+            border-left: 4px solid #60a5fa;
+        }
+        h4 {
+            color: #94a3b8;
+            font-size: 1.1em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        ul {
+            list-style: none;
+            margin: 0 0 25px 0;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            padding: 0;
+            color: #ffffff;
+            font-size: 1em;
+            line-height: 1.5;
+            font-weight: bold;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+        .extra-badge {
+            background: #fb923c;
+            color: #000000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-left: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status {
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .status-completed {
+            color: #10b981;
+            background: #064e3b;
+        }
+        .status-in-progress {
+            color: #f59e0b;
+            background: #451a03;
+        }
+        .assignee {
+            color: #94a3b8;
+            font-weight: 700;
+            font-style: italic;
+        }
+        .sprint-info {
+            background: #065f46;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 40px;
+            color: #ffffff;
+        }
+        .sprint-info strong {
+            color: #6ee7b7;
+        }
+        .epic-section {
+            margin-bottom: 60px;
+        }
+        .project-section {
+            margin-bottom: 40px;
+            padding-left: 20px;
+        }
+        .separator {
+            color: #475569;
+            margin: 0 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sprint Issues Report</h1>
+        ${
+          sprintInfo
+            ? `
+        <div class="sprint-info">
+            <strong>Sprint:</strong> ${sprintInfo.name} (ID: ${sprintInfo.id})
+        </div>
+        `
+            : ""
+        }
+        
+        ${Object.entries(groupedByEpic)
+          .map(([epicName, projects]) => {
+            return `
+        <div class="epic-section">
+            <h2>📌 ${epicName}</h2>
+            ${Object.entries(projects)
+              .map(([projectName, issueTypes]) => {
+                if (Object.keys(issueTypes).length === 0) return "";
+
+                return `
+            <div class="project-section">
+                <h3>🔷 ${projectName}</h3>
+                ${Object.entries(issueTypes)
+                  .map(
+                    ([issueType, issues]) => `
+                <h4>${issueType} (${issues.length})</h4>
+                <ul>
+                    ${issues
+                      .map((issue) => {
+                        const formattedStatus = formatStatus(issue.status);
+                        const statusClass = isCompletedStatus(issue.status)
+                          ? "status status-completed"
+                          : "status status-in-progress";
+                        const assigneeText = issue.assigneeName
+                          ? ` <span class="assignee">${issue.assigneeName}</span>`
+                          : "";
+                        const extraBadge = issue.extra
+                          ? '<span class="extra-badge">Extra</span>'
+                          : "";
+
+                        return `<li>
+                        <a href="https://${process.env.JIRA_HOST}/browse/${issue.key}" target="_blank">${issue.key}</a>${extraBadge}<span class="separator">-</span>${issue.summary}<span class="separator">-</span><span class="${statusClass}">${formattedStatus}</span>${assigneeText}
+                    </li>`;
+                      })
+                      .join("")}
+                </ul>
+                `
+                  )
+                  .join("")}
+            </div>
+                `;
+              })
+              .join("")}
+        </div>
+            `;
+          })
+          .join("")}
+        
+        <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid #334155; color: #64748b; font-size: 0.9em;">
+            Generated on ${new Date().toLocaleString()}
+        </footer>
+    </div>
+</body>
+</html>`;
+
+  return html;
+};
+
 export const getGroupedSprintIssues = async (
   req: FastifyRequest,
   reply: FastifyReply
@@ -530,6 +779,7 @@ export const getGroupedSprintIssues = async (
         "components",
         "labels",
         "parent",
+        "customfield_10018",
       ],
     };
 
@@ -667,6 +917,12 @@ export const getGroupedSprintIssuesHTML = async (
   try {
     const jiraResp = await getLastSprintForRapidView("972");
     const sprintId = jiraResp.id;
+
+    // Get sprint data with parsed issues
+    const jiraRespSprint = await getSprintIssues("972", sprintId.toString());
+    const formattedData = parseJiraSprintData(jiraRespSprint);
+
+    // Get additional fields from searchJira (epic field)
     const query = `Sprint = ${sprintId} and issuetype != Sub-task`;
     const params = {
       fields: [
@@ -680,11 +936,58 @@ export const getGroupedSprintIssuesHTML = async (
         "components",
         "labels",
         "parent",
+        "customfield_10018", // Epic link field
+        "assignee",
       ],
     };
 
     const response = await searchJira(query, params);
-    const issues = response.issues;
+    const searchIssues = response.issues;
+
+    // Create a map of issues from searchJira for quick lookup
+    const issuesMap = new Map<string, Issue>(
+      searchIssues.map((issue: Issue) => [issue.key, issue])
+    );
+
+    // Merge data from formattedData with searchJira results
+    const enhancedIssues: EnhancedIssue[] = [];
+
+    formattedData.issuesByType.forEach((typeGroup) => {
+      typeGroup.issues.forEach((issue) => {
+        const searchIssue = issuesMap.get(issue.key);
+        if (searchIssue && searchIssue.fields) {
+          const assignee = (searchIssue.fields as any).assignee;
+          enhancedIssues.push({
+            key: issue.key,
+            summary: issue.summary || searchIssue.fields.summary || "",
+            status: issue.status,
+            type: issue.type,
+            epic: issue.epic,
+            extra: issue.extra,
+            components: (searchIssue.fields.components || []).map(
+              (c: any) => c.name
+            ),
+            labels: searchIssue.fields.labels || [],
+            description: searchIssue.fields.description || undefined,
+            assigneeName: assignee?.displayName || assignee?.name || undefined,
+          });
+        } else {
+          // If searchIssue not found or fields is null, use data from formattedData only
+          enhancedIssues.push({
+            key: issue.key,
+            summary: issue.summary,
+            status: issue.status,
+            type: issue.type,
+            epic: issue.epic,
+            extra: issue.extra,
+            components: [],
+            labels: [],
+            description: undefined,
+            assigneeName: undefined,
+          });
+        }
+      });
+    });
 
     const projects = [
       {
@@ -724,43 +1027,42 @@ export const getGroupedSprintIssuesHTML = async (
       return keys.some((key) => lower.includes(key.toLowerCase()));
     }
 
-    // Group issues by project and then by issue type
-    const grouped: Record<string, Record<string, string[]>> = {};
-    for (const project of projects) {
-      grouped[project.name] = {};
-    }
-    grouped["Other"] = {};
+    // Group by Epic -> Project -> Issue Type
+    const groupedByEpic: GroupedByEpic = {};
 
-    for (const issue of issues) {
-      const summary = issue.fields.summary || "";
-      const description = issue.fields.description || "";
-      const components = (issue.fields.components || [])
-        .map((c: any) => c.name)
-        .join(" ");
-      const labels = (issue.fields.labels || []).join(" ");
-      const issueType = issue.fields.issuetype?.name || "Unknown";
-      const issueStatus = issue.fields.status?.name || "Unknown";
-      const line = `[${issue.key}| https://${process.env.JIRA_HOST}/browse/${issue.key}][${issueStatus}] - ${summary}`;
+    for (const issue of enhancedIssues) {
+      const epicName = issue.epic || "No Epic";
+      const componentsStr = issue.components.join(" ");
+      const labelsStr = issue.labels.join(" ");
 
+      // Determine project
       let projectName = "Other";
       for (const project of projects) {
         if (
-          hasProjectKey(summary, project.keys) ||
-          hasProjectKey(components, project.keys) ||
-          hasProjectKey(labels, project.keys)
+          hasProjectKey(issue.summary, project.keys) ||
+          hasProjectKey(componentsStr, project.keys) ||
+          hasProjectKey(labelsStr, project.keys)
         ) {
           projectName = project.name;
           break;
         }
       }
 
-      if (!grouped[projectName][issueType]) {
-        grouped[projectName][issueType] = [];
+      // Initialize nested structure
+      if (!groupedByEpic[epicName]) {
+        groupedByEpic[epicName] = {};
       }
-      grouped[projectName][issueType].push(line);
+      if (!groupedByEpic[epicName][projectName]) {
+        groupedByEpic[epicName][projectName] = {};
+      }
+      if (!groupedByEpic[epicName][projectName][issue.type]) {
+        groupedByEpic[epicName][projectName][issue.type] = [];
+      }
+
+      groupedByEpic[epicName][projectName][issue.type].push(issue);
     }
 
-    const html = generateHTMLFromGroupedIssues(grouped, {
+    const html = generateHTMLFromGroupedIssuesByEpic(groupedByEpic, {
       id: sprintId.toString(),
       name: jiraResp.name,
     });
