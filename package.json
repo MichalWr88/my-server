@@ -1,6 +1,6 @@
 {
   "name": "my-server",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "",
   "packageManager": "npm@9.6.7",
   "main": "index.js",
@@ -11,11 +11,14 @@
     "dev": "TZ=UTC nodemon",
     "typeorm": "typeorm-ts-node-commonjs",
     "typeorm-sync": "typeorm-ts-node-commonjs schema:sync",
-    "bump-git-patch": "bump patch --commit --push",
-    "bump-git-prepatch": "bump prepatch --commit --push",
-    "bump-git-prerelease": "bump prerelease --commit --push",
-    "bump-git-minor": "bump minor --commit --push",
-    "bump-git-major": "bump major --commit --push"
+    "release": "release-it",
+    "release:patch": "release-it patch --ci",
+    "release:minor": "release-it minor --ci",
+    "release:major": "release-it major --ci",
+    "release:prepatch": "release-it prepatch --ci --preRelease=beta",
+    "release:preminor": "release-it preminor --ci --preRelease=beta",
+    "release:premajor": "release-it premajor --ci --preRelease=beta",
+    "release:prerelease": "release-it prerelease --ci --preRelease=beta"
   },
   "author": "",
   "license": "ISC",
@@ -23,7 +26,6 @@
     "@fastify/cookie": "^9.3.1",
     "@fastify/jwt": "^8.0.1",
     "@fastify/static": "^7.0.3",
-    "@jsdevtools/version-bump-prompt": "^6.1.0",
     "@prisma/client": "^5.13.0",
     "@types/jira-client": "^7.1.9",
     "date-fns": "^4.1.0",
@@ -43,6 +45,7 @@
     "bcrypt": "^5.1.1",
     "nodemon": "^3.1.0",
     "prisma": "^5.13.0",
+    "release-it": "^17.11.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
