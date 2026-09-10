@@ -60,7 +60,8 @@ jobs:
       - run: npm ci
       - run: |
           echo JIRA_HOST=${{ secrets.JIRA_HOST }} >> .env
-          echo JIRA_BEARER=${{ secrets.JIRA_BEARER }} >> .env
+          echo JIRA_EMAIL=${{ secrets.JIRA_EMAIL }} >> .env
+          echo JIRA_API_TOKEN=${{ secrets.JIRA_API_TOKEN }} >> .env
           echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
           echo SALT_ROUNDS=${{ secrets.SALT_ROUNDS }} >> .env
           echo DB_TYPE=${{ secrets.DB_TYPE }} >> .env

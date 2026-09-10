@@ -6,7 +6,9 @@ export const getJiraNativeWorklogs = async () => {
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${process.env.JIRA_BEARER}`,
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`
+        ).toString("base64")}`,
         Accept: "application/json",
       },
     }

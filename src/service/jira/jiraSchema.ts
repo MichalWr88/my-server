@@ -24,7 +24,7 @@ export type JiraGetIssue = z.infer<typeof JiraGetIssueSchema>;
 
 //
 const JiraTaskSchemaRequest = z.object({
-  date: z.date(),
+  date: z.string(),
   jiraTaskId: z.string(),
   comment: z.string(),
   timeSpent: z.string(),

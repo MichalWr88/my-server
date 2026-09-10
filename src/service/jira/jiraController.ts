@@ -61,7 +61,7 @@ export const logJiraTime = async (
   req: FastifyRequest<{
     Body: JiraTaskRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { comment, date, jiraTaskId, timeSpent } = req.body;
@@ -81,7 +81,7 @@ export const logJiraLoopDays = async (
   req: FastifyRequest<{
     Body: JiraLoopDaysRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { comment, startDate, endDate, boardId } = req.body;
@@ -101,7 +101,7 @@ export const searchJiraQuery = async (
   req: FastifyRequest<{
     Body: JiraSearchParams;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { query, params } = req.body;
@@ -118,7 +118,7 @@ export const getIssueFromJira = async (
     Params: { id: string };
     Body: JiraGetIssue;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const {
@@ -137,7 +137,7 @@ export const searchJiraWorklogByTime = async (
   req: FastifyRequest<{
     Body: JiraWorklogByTimeRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { user, type, prevStart, prevEnd } = req.body;
@@ -157,7 +157,7 @@ export const searchJiraQueryPreConfigured = async (
   req: FastifyRequest<{
     Querystring: JiraWorklogPreConfiguredRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { user, type } = req.query;
@@ -180,7 +180,7 @@ export const getJiraBoardData = async (
   req: FastifyRequest<{
     Params: { id: string };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { id } = req.params;
@@ -194,7 +194,7 @@ export const getLastSprintForRapidViewData = async (
   req: FastifyRequest<{
     Body: JiraLastSprintForRapidViewRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   const { boardId } = req.body;
   try {
@@ -209,7 +209,7 @@ export const getJiraSprint = async (
   req: FastifyRequest<{
     Body: JiraSprintRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   const { sprintId } = req.body;
   try {
@@ -224,13 +224,13 @@ export const getJiraSprintIssues = async (
   req: FastifyRequest<{
     Body: JiraSprintIssuesRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraSprintIssuesResponse | undefined> => {
   const { boardId, sprintId } = req.body;
   try {
     const jiraResp = await getSprintIssues(
       boardId.toString(),
-      sprintId.toString()
+      sprintId.toString(),
     );
     const formattedData = parseJiraSprintData(jiraResp);
     formatItemsForGoogleSlides(formattedData.issuesByType[0].issues);
@@ -244,7 +244,7 @@ export const getJiraOrgTaskCurrentSprint = async (
   req: FastifyRequest<{
     Body: JiraLastSprintForRapidViewRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<string | null> => {
   const { boardId } = req.body;
   try {
@@ -259,7 +259,7 @@ export const editJiraIssue = async (
   req: FastifyRequest<{
     Body: JiraEditIssueRequest;
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse | undefined> => {
   try {
     const { issueId, fields } = req.body;
@@ -274,7 +274,7 @@ export const copyComponentsToLabels = async (
   req: FastifyRequest<{
     Params: { id: string };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse> => {
   try {
     const { id } = req.params;
@@ -308,7 +308,7 @@ const copyComponentsToLabelsForIssues = async (sprintId: string) => {
   };
   const response = (await searchJira(
     data.query,
-    data.params
+    data.params,
   )) as JiraWorklogListResponse;
 
   const results = await Promise.all(
@@ -334,7 +334,7 @@ const copyComponentsToLabelsForIssues = async (sprintId: string) => {
           error: (error as Error).message,
         };
       }
-    })
+    }),
   );
 
   return results;
@@ -344,7 +344,7 @@ export const copyComponentsToLabelsForSprintIssues = async (
   req: FastifyRequest<{
     Params: { id: string };
   }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse> => {
   try {
     const { id } = req.params;
@@ -357,11 +357,11 @@ export const copyComponentsToLabelsForSprintIssues = async (
 
 export const copyComponentsToLabelsForCurrentSprint = async (
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<JiraApi.JsonResponse> => {
   try {
-    // Pobierz obecny sprint dla boardId 972
-    const currentSprint = await getLastSprintForRapidView("972");
+    // Pobierz obecny sprint dla boardId 2493
+    const currentSprint = await getLastSprintForRapidView("2493");
     const sprintId = currentSprint.id;
 
     const results = await copyComponentsToLabelsForIssues(sprintId.toString());
@@ -378,7 +378,7 @@ export const copyComponentsToLabelsForCurrentSprint = async (
 
 const generateHTMLFromGroupedIssues = (
   grouped: Record<string, Record<string, string[]>>,
-  sprintInfo?: { id: string; name: string }
+  sprintInfo?: { id: string; name: string },
 ) => {
   const html = `
 <!DOCTYPE html>
@@ -499,7 +499,7 @@ const generateHTMLFromGroupedIssues = (
                   .map((issue) => {
                     // Parse the issue string to extract components
                     const match = issue.match(
-                      /\[(.*?)\|\s*(.*?)\]\[(.*?)\]\s*-\s*(.*)/
+                      /\[(.*?)\|\s*(.*?)\]\[(.*?)\]\s*-\s*(.*)/,
                     );
                     if (match) {
                       const [, issueKey, url, status, summary] = match;
@@ -513,7 +513,7 @@ const generateHTMLFromGroupedIssues = (
                   })
                   .join("")}
             </ul>
-            `
+            `,
               )
               .join("")}
         </div>
@@ -534,7 +534,7 @@ const generateHTMLFromGroupedIssues = (
 
 const generateHTMLFromGroupedIssuesByEpic = (
   groupedByEpic: GroupedByEpic,
-  sprintInfo?: { id: string; name: string }
+  sprintInfo?: { id: string; name: string },
 ) => {
   // Helper function to format status
   const formatStatus = (status: string): string => {
@@ -547,7 +547,7 @@ const generateHTMLFromGroupedIssuesByEpic = (
   const isCompletedStatus = (status: string): boolean => {
     const completedStatuses = ["Closed", "Ready for Deployment", "Done"];
     return completedStatuses.some(
-      (s) => status.toLowerCase() === s.toLowerCase()
+      (s) => status.toLowerCase() === s.toLowerCase(),
     );
   };
 
@@ -737,7 +737,7 @@ const generateHTMLFromGroupedIssuesByEpic = (
                       })
                       .join("")}
                 </ul>
-                `
+                `,
                   )
                   .join("")}
             </div>
@@ -761,10 +761,10 @@ const generateHTMLFromGroupedIssuesByEpic = (
 
 export const getGroupedSprintIssues = async (
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<any> => {
   try {
-    const jiraResp = await getLastSprintForRapidView("972");
+    const jiraResp = await getLastSprintForRapidView("2493");
     const sprintId = jiraResp.id;
     const query = `Sprint = ${sprintId} and issuetype != Sub-task`;
     const params = {
@@ -852,12 +852,12 @@ export const getGroupedSprintIssues = async (
           console.log(
             "Matched project key in summary:",
             hasProjectKey(summary, project.keys),
-            summary
+            summary,
           );
           console.log(
             "Matched project key in components:",
             hasProjectKey(components, project.keys),
-            components
+            components,
           );
           // console.log(
           //   "Matched project key in description:",
@@ -867,7 +867,7 @@ export const getGroupedSprintIssues = async (
           console.log(
             "Matched project key in labels:",
             hasProjectKey(labels, project.keys),
-            labels
+            labels,
           );
           console.log("Matched project:", project.name);
           projectName = project.name;
@@ -887,7 +887,7 @@ export const getGroupedSprintIssues = async (
       if (Object.keys(grouped[project.name]).length) {
         output.push(`# ${project.name}`);
         for (const [issueType, lines] of Object.entries(
-          grouped[project.name]
+          grouped[project.name],
         )) {
           output.push(`## ${issueType}`);
           output.push(...lines);
@@ -912,14 +912,14 @@ export const getGroupedSprintIssues = async (
 
 export const getGroupedSprintIssuesHTML = async (
   req: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ): Promise<any> => {
   try {
-    const jiraResp = await getLastSprintForRapidView("972");
+    const jiraResp = await getLastSprintForRapidView("2493");
     const sprintId = jiraResp.id;
 
     // Get sprint data with parsed issues
-    const jiraRespSprint = await getSprintIssues("972", sprintId.toString());
+    const jiraRespSprint = await getSprintIssues("2493", sprintId.toString());
     const formattedData = parseJiraSprintData(jiraRespSprint);
 
     // Get additional fields from searchJira (epic field)
@@ -946,7 +946,7 @@ export const getGroupedSprintIssuesHTML = async (
 
     // Create a map of issues from searchJira for quick lookup
     const issuesMap = new Map<string, Issue>(
-      searchIssues.map((issue: Issue) => [issue.key, issue])
+      searchIssues.map((issue: Issue) => [issue.key, issue]),
     );
 
     // Merge data from formattedData with searchJira results
@@ -965,7 +965,7 @@ export const getGroupedSprintIssuesHTML = async (
             epic: issue.epic,
             extra: issue.extra,
             components: (searchIssue.fields.components || []).map(
-              (c: any) => c.name
+              (c: any) => c.name,
             ),
             labels: searchIssue.fields.labels || [],
             description: searchIssue.fields.description || undefined,

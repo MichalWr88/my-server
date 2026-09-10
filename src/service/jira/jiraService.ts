@@ -23,7 +23,11 @@ import {
 } from "./models/jiraSchemaQueryWorklog";
 type fnJiraDates = "OfMonth" | "OfWeek" | "OfDay";
 
-if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
+if (
+  !process.env.JIRA_HOST ||
+  !process.env.JIRA_EMAIL ||
+  !process.env.JIRA_API_TOKEN
+) {
   throw new Error(
     "Please provide all the necessary environment variables for the Jira API connection"
   );
@@ -32,7 +36,8 @@ if (!process.env.JIRA_HOST || !process.env.JIRA_BEARER) {
 const jira = new JiraApi({
   protocol: "https",
   host: process.env.JIRA_HOST,
-  bearer: process.env.JIRA_BEARER,
+  username: process.env.JIRA_EMAIL,
+  password: process.env.JIRA_API_TOKEN,
   apiVersion: "2",
   strictSSL: true,
 });
@@ -71,7 +76,7 @@ export const loopDays = async ({
       const result = findRecordByDay(groupedByDay, currentDate);
 
       await addJiraWorklog({
-        date: currentDate,
+        date: currentDate.toISOString(),
         jiraTaskId: orgTask,
         comment,
         timeSpent: result?.decimal ?? "0",
@@ -108,7 +113,7 @@ export const searchJira = async (
   searchString: string,
   searchQuery?: JiraApi.SearchQuery
 ): Promise<JiraApi.IssueObject> => {
-  const searchQueryObj = searchQuery ?? {
+  const { fields, maxResults, expand } = searchQuery ?? {
     fields: [
       "summary",
       "description",
@@ -121,7 +126,32 @@ export const searchJira = async (
       "parent",
     ],
   };
-  return await jira.searchJira(searchString, searchQueryObj);
+  const authHeader = `Basic ${Buffer.from(
+    `${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`
+  ).toString("base64")}`;
+  const response = await fetch(
+    `https://${process.env.JIRA_HOST}/rest/api/3/search/jql`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jql: searchString,
+        fields,
+        maxResults,
+        expand,
+      }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Jira search failed: ${response.status} ${await response.text()}`
+    );
+  }
+  return await response.json();
 };
 export const getJiraSprint = async (
   sprintId: string
@@ -180,7 +210,13 @@ export const getJiraUsersIssues = async (
   username: string,
   open: boolean
 ): Promise<JiraApi.JsonResponse> => {
-  return await jira.getUsersIssues(username, open);
+  const openJql = open
+    ? " AND status in (Open, 'In Progress', Reopened)"
+    : "";
+  return await searchJira(
+    `assignee = ${username.replace("@", "\\u0040")}${openJql}`,
+    {}
+  );
 };
 export const getJiraUpdateIssue = async (
   issueId: string,
