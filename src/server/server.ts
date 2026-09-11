@@ -2,12 +2,17 @@ import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import fjwt from "@fastify/jwt";
 import { setRouting } from "./routes/routing";
 import fastifyStatic from "@fastify/static";
-import { userSchemas } from "../service/user/userSchema";
 import "reflect-metadata";
-import { jiraSchemas } from "../service/jira/jiraSchema";
+import {
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from "fastify-type-provider-zod";
 
 export const startFastifyServer = async () => {
-  const server = fastify();
+  const server = fastify().withTypeProvider<ZodTypeProvider>();
+  server.setValidatorCompiler(validatorCompiler);
+  server.setSerializerCompiler(serializerCompiler);
 
   const listeners = ["SIGINT", "SIGTERM"];
   listeners.forEach((signal) => {
@@ -47,10 +52,6 @@ export const startFastifyServer = async () => {
   });
 
   setRouting(server);
-
-  for (let schema of [...userSchemas, ...jiraSchemas]) {
-    server.addSchema(schema);
-  }
 
   server.listen({ port: 8080, host: "0.0.0.0" }, (err, address) => {
     if (err) {

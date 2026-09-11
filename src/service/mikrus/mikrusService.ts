@@ -35,7 +35,7 @@ export class MikrusService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      return (await response.json()) as T;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`MIKR.US API Error: ${error.message}`);

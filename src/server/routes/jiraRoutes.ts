@@ -1,6 +1,19 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 
-import { $ref, JIraTaskIdSchemaParams } from "../../service/jira/jiraSchema";
+import {
+  JIraTaskIdSchemaParams,
+  JIraTaskIdSchema,
+  JiraGetIssueSchema,
+  JiraTaskSchemaRequest,
+  JiraLoopDaysSchemaRequest,
+  JiraSearchSchema,
+  JiraQueryDatesSchemaRequest,
+  JiraWorklogPreConfiguredSchemaRequest,
+  JiraLastSprintForRapidViewRequestSchema,
+  JiraSprintRequestSchema,
+  JiraSprintIssuesRequestSchema,
+  JiraEditIssueSchemaRequest,
+} from "../../service/jira/jiraSchema";
 import {
   getCurrentJiraUser,
   getJiraIssue,
@@ -57,8 +70,8 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        params: $ref("JIraTaskIdSchema"),
-        body: $ref("JiraGetIssueSchema"),
+        params: JIraTaskIdSchema,
+        body: JiraGetIssueSchema,
       },
     },
     getIssueFromJira
@@ -68,7 +81,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraTaskSchemaRequest"),
+        body: JiraTaskSchemaRequest,
       },
     },
     logJiraTime
@@ -78,9 +91,9 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraLoopDaysSchemaRequest"),
+        body: JiraLoopDaysSchemaRequest,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -91,9 +104,9 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraSearchSchema"),
+        body: JiraSearchSchema,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -104,9 +117,9 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraQueryDatesSchemaRequest"),
+        body: JiraQueryDatesSchemaRequest,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -117,10 +130,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        // body: $ref("JiraQueryDatesSchemaRequest"),
+        querystring: JiraWorklogPreConfiguredSchemaRequest,
+        // body: JiraQueryDatesSchemaRequest,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -131,10 +144,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        // body: $ref("JiraQueryDatesSchemaRequest"),
+        querystring: JiraWorklogPreConfiguredSchemaRequest,
+        // body: JiraQueryDatesSchemaRequest,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -145,10 +158,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        body: $ref("JiraLastSprintForRapidViewRequestSchema"),
+        // querystring: JiraWorklogPreConfiguredSchemaRequest,
+        body: JiraLastSprintForRapidViewRequestSchema,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -159,10 +172,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        body: $ref("JiraSprintRequestSchema"),
+        // querystring: JiraWorklogPreConfiguredSchemaRequest,
+        body: JiraSprintRequestSchema,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -174,10 +187,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        body: $ref("JiraSprintIssuesRequestSchema"),
+        // querystring: JiraWorklogPreConfiguredSchemaRequest,
+        body: JiraSprintIssuesRequestSchema,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -189,10 +202,10 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        // querystring: $ref("JiraWorklogPreConfiguredSchemaRequest"),
-        body: $ref("JiraLastSprintForRapidViewRequestSchema"),
+        // querystring: JiraWorklogPreConfiguredSchemaRequest,
+        body: JiraLastSprintForRapidViewRequestSchema,
         // response: {
-        //   201: $ref("createUserResponseSchema"),
+        //   201: createUserResponseSchema,
         // },
       },
     },
@@ -203,9 +216,9 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        body: $ref("JiraEditIssueSchemaRequest"),
+        body: JiraEditIssueSchemaRequest,
         // response: {
-        //   200: $ref("SomeResponseSchema"),
+        //   200: SomeResponseSchema,
         // },
       },
     },
@@ -216,9 +229,9 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        params: $ref("JIraTaskIdSchema"),
+        params: JIraTaskIdSchema,
         // response: {
-        //   200: $ref("SomeResponseSchema"),
+        //   200: SomeResponseSchema,
         // },
       },
     },
@@ -229,7 +242,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        params: $ref("JIraTaskIdSchema"),
+        params: JIraTaskIdSchema,
       },
     },
     getJiraBoardData
@@ -239,7 +252,7 @@ export const jiraRoutes = async (server: FastifyInstance) => {
     {
       preHandler: [server.authenticate],
       schema: {
-        params: $ref("JIraTaskIdSchema"),
+        params: JIraTaskIdSchema,
       },
     },
     copyComponentsToLabelsForSprintIssues

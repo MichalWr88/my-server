@@ -1,5 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { $ref } from "../../service/user/userSchema";
+import {
+  createUserSchema,
+  createUserResponseSchema,
+  loginSchema,
+  loginResponseSchema,
+} from "../../service/user/userSchema";
 import { createUser, loginUser } from "../../service/user/userService";
 
 export const userRoutes = async (server: FastifyInstance) => {
@@ -10,9 +15,9 @@ export const userRoutes = async (server: FastifyInstance) => {
     "/register",
     {
       schema: {
-        body: $ref("createUserSchema"),
+        body: createUserSchema,
         response: {
-          201: $ref("createUserResponseSchema"),
+          201: createUserResponseSchema,
         },
       },
     },
@@ -22,9 +27,9 @@ export const userRoutes = async (server: FastifyInstance) => {
     "/login",
     {
       schema: {
-        body: $ref("loginSchema"),
+        body: loginSchema,
         response: {
-          201: $ref("loginResponseSchema"),
+          201: loginResponseSchema,
         },
       },
     },

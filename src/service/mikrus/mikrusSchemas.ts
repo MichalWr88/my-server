@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { buildJsonSchemas } from "fastify-zod";
 //
 const memoryData = z.object({
     free: z.object({
@@ -26,10 +25,3 @@ const mikrusStatusResponse = z.object({
 });
 export type MikrusStatusResponse = z.infer<typeof mikrusStatusResponse>;
 export type MikrusMemoryData = z.infer<typeof memoryData>;
-
-export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
-  {
-    mikrusStatusResponse,memoryData
-  },
-  { $id: "mikrusSchema" }
-);

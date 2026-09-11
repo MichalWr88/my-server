@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { buildJsonSchemas } from "fastify-zod";
 import { parse, isValid } from "date-fns";
 
 const JiraSearchQueryParamsSchema = z.object({
@@ -11,23 +10,32 @@ const JiraSearchQueryParamsSchema = z.object({
 
 export type JiraSearchQueryParams = z.infer<typeof JiraSearchQueryParamsSchema>;
 
-const JiraSearchSchema = z.object({
+export const JiraSearchSchema = z.object({
   query: z.string(),
   params: JiraSearchQueryParamsSchema.optional(),
 });
 export type JiraSearchParams = z.infer<typeof JiraSearchSchema>;
 
-const JiraGetIssueSchema = z.object({
+export const JiraGetIssueSchema = z.object({
   fields: z.union([z.array(z.string()), z.string()]).optional(),
 });
 export type JiraGetIssue = z.infer<typeof JiraGetIssueSchema>;
 
 //
-const JiraTaskSchemaRequest = z.object({
+// Jira's duration format requires a space between units (e.g. "1h 30m").
+// A value like "1h30m" is rejected by Jira's API with a 500
+// ("Invalid time duration entered."), so we catch it here as a 400 instead.
+const JIRA_TIME_SPENT_REGEX = /^(\d+[wdhm](\s\d+[wdhm])*)$/i;
+const timeSpentSchema = z.string().regex(JIRA_TIME_SPENT_REGEX, {
+  message:
+    'Must be a valid Jira duration with spaces between units, e.g. "1h 30m"',
+});
+
+export const JiraTaskSchemaRequest = z.object({
   date: z.string(),
   jiraTaskId: z.string(),
   comment: z.string(),
-  timeSpent: z.string(),
+  timeSpent: timeSpentSchema,
 });
 export type JiraTaskRequest = z.infer<typeof JiraTaskSchemaRequest>;
 //
@@ -55,7 +63,7 @@ export type JiraOfMonth = z.infer<typeof JiraOfMonthSchemaRequest>;
 export type JiraOfDay = z.infer<typeof JiraOfDaySchemaRequest>;
 export type JiraOfWeek = z.infer<typeof JiraOfWeekSchemaRequest>;
 
-const JiraQueryDatesSchemaRequest = z.union([
+export const JiraQueryDatesSchemaRequest = z.union([
   JiraOfDaySchemaRequest,
   JiraOfWeekSchemaRequest,
   JiraOfMonthSchemaRequest,
@@ -64,7 +72,7 @@ export type JiraWorklogByTimeRequest = z.infer<
   typeof JiraQueryDatesSchemaRequest
 >;
 
-const JiraWorklogPreConfiguredSchemaRequest = z.object({
+export const JiraWorklogPreConfiguredSchemaRequest = z.object({
   type: z.union([
     z.literal("currentMonth"),
     z.literal("currentWeek"),
@@ -88,7 +96,7 @@ export const DateStringSchema = z.string().refine(
     message: "Must be a valid date in YYYY-MM-DD format",
   }
 );
-const JiraLoopDaysSchemaRequest = z.object({
+export const JiraLoopDaysSchemaRequest = z.object({
   startDate: DateStringSchema,
   endDate: DateStringSchema,
   comment: z.string(),
@@ -96,16 +104,16 @@ const JiraLoopDaysSchemaRequest = z.object({
 });
 export type JiraLoopDaysRequest = z.infer<typeof JiraLoopDaysSchemaRequest>;
 
-const JIraTaskIdSchema = z.object({
+export const JIraTaskIdSchema = z.object({
   id: z.string(),
 });
 export type JIraTaskIdSchemaParams = z.infer<typeof JIraTaskIdSchema>;
 
-const JiraLastSprintForRapidViewRequestSchema = z.object({
+export const JiraLastSprintForRapidViewRequestSchema = z.object({
   boardId: z.number(),
 });
 
-const JiraSprintRequestSchema = z.object({
+export const JiraSprintRequestSchema = z.object({
   sprintId: z.number(),
 });
 export type JiraSprintRequest = z.infer<typeof JiraSprintRequestSchema>;
@@ -321,40 +329,8 @@ export const DayRecordSchema = z.object({
 
 export type DayRecord = z.infer<typeof DayRecordSchema>;
 
-const JiraEditIssueSchemaRequest = z.object({
+export const JiraEditIssueSchemaRequest = z.object({
   issueId: z.string(),
   fields: z.record(z.string(), z.any()),
 });
 export type JiraEditIssueRequest = z.infer<typeof JiraEditIssueSchemaRequest>;
-
-export const { schemas: jiraSchemas, $ref } = buildJsonSchemas(
-  {
-    JiraSprintIssuesRequestSchema,
-    JiraSprintRequestSchema,
-    JIraTaskIdSchema,
-    JiraLoopDaysSchemaRequest,
-    JiraTaskSchemaRequest,
-    JiraQueryDatesSchemaRequest,
-    JiraWorklogPreConfiguredSchemaRequest,
-    JiraLastSprintForRapidViewRequestSchema,
-    JiraGetLastSprintForRapidViewResponseSchema,
-    AllIssuesEstimateSumClassSchema,
-    CompletedIssueSchema,
-    ContentsSchema,
-    EntityDataSchema,
-    EpicFieldSchema,
-    EpicSchema,
-    EstimateStatisticSchema,
-    JiraSprintIssuesResponseSchema,
-    PrioritySchema,
-    SprintSchema,
-    StatusCategorySchema,
-    StatusStatusSchema,
-    StatusValueSchema,
-    TypeSchema,
-    JiraSearchSchema,
-    JiraGetIssueSchema,
-    JiraEditIssueSchemaRequest,
-  },
-  { $id: "jiraSchema" }
-);

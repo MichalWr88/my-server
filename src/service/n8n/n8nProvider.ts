@@ -26,7 +26,7 @@ export const getCalendarEventsByDateRange = async (
         end: endDate,
       }),
     });
-    return await resp.json();
+    return (await resp.json()) as GoogleCalendarEvent[];
     //   .then(async (res) => await res.json())
     //   .then((data) => {
     //     console.log(data);

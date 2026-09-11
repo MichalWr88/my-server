@@ -151,7 +151,7 @@ export const searchJira = async (
       `Jira search failed: ${response.status} ${await response.text()}`
     );
   }
-  return await response.json();
+  return (await response.json()) as JiraApi.IssueObject;
 };
 export const getJiraSprint = async (
   sprintId: string
@@ -168,9 +168,11 @@ export const getJiraUsersInGroup = async (
 export const getJiraBoard = async (
   boardId: string
 ): Promise<JiraApi.JsonResponse> => {
-  const response = await jira.listSprints(boardId);
-  console.log(response,boardId);
-  return response;
+  // `jira.listSprints` hits the legacy, unofficial GreenHopper endpoint
+  // (/rest/greenhopper/1.0/sprintquery/{id}), which doesn't reliably include
+  // future sprints. `getAllSprints` uses the official Agile REST API
+  // (/board/{id}/sprint) and returns all states (future/active/closed).
+  return await jira.getAllSprints(boardId, 0, 50);
 };
 export const getLastSprintForRapidView = async (
   boardId: string
