@@ -40,7 +40,43 @@ jobs:
 
       - run: npm run build
       - run: |
-          npm run pm2-start 
+          # The self-hosted PM2 daemon is a long-running process, started once
+          # under whatever Node was current at the time. `actions/setup-node`
+          # only puts Node 24 on PATH for steps in this job — it doesn't touch
+          # the already-running PM2 daemon, which keeps using its own (older)
+          # Node to spawn managed apps regardless. Load nvm's Node 24 install
+          # explicitly here, and if the daemon is still on an old Node, kill
+          # and restart it so it (and the apps it spawns) run on Node 24 too.
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install 24
+          nvm use 24
+
+          expected_node_version=$(node -v | sed 's/^v//')
+          daemon_node_version=$(pm2 jlist 2>/dev/null | node -e "
+            let raw = '';
+            process.stdin.on('data', d => raw += d);
+            process.stdin.on('end', () => {
+              try {
+                const apps = JSON.parse(raw);
+                const app = apps.find(a => a.name === 'my-server');
+                console.log((app && app.pm2_env && app.pm2_env.node_version) || '');
+              } catch {
+                console.log('');
+              }
+            });
+          ")
+          # If the running PM2 daemon spawned the app under a different (or no
+          # detectable) Node version, kill the whole daemon so it comes back
+          # up under the current (Node 24) interpreter. Safe: `pm2 start`
+          # right below re-creates everything regardless.
+          if [ "$daemon_node_version" != "$expected_node_version" ]; then
+            echo "PM2 daemon Node version ('$daemon_node_version') != expected ('$expected_node_version'), restarting daemon"
+            pm2 kill
+          fi
+
+          npm run pm2-start
+          pm2 save
           # &
           # sleep 20 &&
           # curl http://localhost:8080
