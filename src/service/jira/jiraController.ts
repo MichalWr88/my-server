@@ -957,12 +957,13 @@ export const getGroupedSprintIssuesHTML = async (
         const searchIssue = issuesMap.get(issue.key);
         if (searchIssue && searchIssue.fields) {
           const assignee = (searchIssue.fields as any).assignee;
+          const searchFields = searchIssue.fields as any;
           enhancedIssues.push({
             key: issue.key,
             summary: issue.summary || searchIssue.fields.summary || "",
-            status: issue.status,
-            type: issue.type,
-            epic: issue.epic,
+            status: searchFields.status?.name || issue.status,
+            type: searchFields.issuetype?.name || issue.type,
+            epic: issue.epic || searchFields.parent?.fields?.summary,
             extra: issue.extra,
             components: (searchIssue.fields.components || []).map(
               (c: any) => c.name,
@@ -1072,6 +1073,7 @@ export const getGroupedSprintIssuesHTML = async (
       .header("Content-Type", "text/html; charset=utf-8")
       .send(html);
   } catch (e) {
+    console.error("getGroupedSprintIssuesHTML failed:", e);
     return reply.code(500).send(e);
   }
 };

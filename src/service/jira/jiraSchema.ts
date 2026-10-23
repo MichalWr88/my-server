@@ -292,7 +292,7 @@ export const ContentsSchema = z.object({
   issuesNotCompletedInCurrentSprint: z.array(CompletedIssueSchema),
   puntedIssues: z.array(z.any()),
   issuesCompletedInAnotherSprint: z.array(z.any()),
-  entityData: EntityDataSchema,
+  entityData: EntityDataSchema.optional(),
   completedIssuesInitialEstimateSum: AllIssuesEstimateSumClassSchema,
   completedIssuesEstimateSum: AllIssuesEstimateSumClassSchema,
   issuesNotCompletedInitialEstimateSum: AllIssuesEstimateSumClassSchema,

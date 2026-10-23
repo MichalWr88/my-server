@@ -448,6 +448,16 @@ const groupByDay = (entries: GoogleCalendarEvent[]): DayRecord[] => {
 
 export function parseJiraSprintData(resp: JiraSprintIssuesResponse) {
   const { sprint, contents } = resp;
+  if (!contents) {
+    throw new Error(
+      `Unexpected Jira sprint report shape: top-level keys [${Object.keys(resp ?? {})}]`
+    );
+  }
+  if (!contents.entityData) {
+    console.warn(
+      "Jira sprint report has no entityData, type/status/epic names fall back to Unknown"
+    );
+  }
   const {
     entityData,
     completedIssues,
@@ -467,11 +477,11 @@ export function parseJiraSprintData(resp: JiraSprintIssuesResponse) {
   const issuesByType: Record<string, { typeName: string; issues: any[] }> = {};
 
   allIssues.forEach((issue) => {
-    const typeName = entityData.types[issue.typeId]?.typeName || "Unknown";
+    const typeName = entityData?.types[issue.typeId]?.typeName || "Unknown";
     const statusName =
-      entityData.statuses[issue.statusId]?.statusName || "Unknown";
+      entityData?.statuses[issue.statusId]?.statusName || "Unknown";
     const epicText = issue.epicId
-      ? entityData.epics[issue.epicId]?.epicField?.text
+      ? entityData?.epics[issue.epicId]?.epicField?.text
       : undefined;
     const isExtra = !!issueKeysAddedDuringSprint[issue.key];
 
