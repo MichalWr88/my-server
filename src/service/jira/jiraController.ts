@@ -788,12 +788,12 @@ export const getGroupedSprintIssues = async (
 
     const projects = [
       {
-        name: "Company Monitor",
-        keys: ["[CM]", "Company Monitor", "company-monitor"],
+        name: "GFFP",
+        keys: ["[GFFP]", "Company Monitor", "company-monitor",'gffp'],
       },
       {
-        name: "Company Data Provider",
-        keys: ["[CDP]", "Company Data Provider", "company-data-provider"],
+        name: "Payments Module",
+        keys: ["[PM]", "Payments Module", "payments-module"],
       },
       {
         name: "Company Verifications",
@@ -804,8 +804,8 @@ export const getGroupedSprintIssues = async (
         keys: ["[CS]", "Company Statuses", "company-statuses"],
       },
       {
-        name: "Payments Gateway",
-        keys: ["[PG]", "Payments Gateway", "payments-gateway"],
+        name: "Formularz Rejestracji ",
+        keys: ["[FE]", "Formularz Rejestracji", "formularz-rejestracji",'Registration'],
       },
       {
         name: "Customer Extended Data Center",
