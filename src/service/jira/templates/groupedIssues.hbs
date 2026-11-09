@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprint Issues Report{{#if sprintInfo}} - {{sprintInfo.name}}{{/if}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #0052cc;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #0052cc;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f4f5f7;
+            border-left: 4px solid #0052cc;
+        }
+        h3 {
+            color: #5e6c84;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        ul {
+            margin: 0 0 20px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #fafbfc;
+            border-radius: 4px;
+            border-left: 3px solid #dfe1e6;
+        }
+        a {
+            color: #0052cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .issue-status {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+        .sprint-info {
+            background: #e3fcef;
+            border: 1px solid #36b37e;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .project-section {
+            margin-bottom: 40px;
+        }
+        .empty-section {
+            color: #6b778c;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: #f4f5f7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sprint Issues Report</h1>
+        {{#if sprintInfo}}
+        <div class="sprint-info">
+            <strong>Sprint:</strong> {{sprintInfo.name}} (ID: {{sprintInfo.id}})
+        </div>
+        {{/if}}
+        {{#each projects}}
+        <div class="project-section">
+            <h2>{{name}}</h2>
+            {{#each issueTypes}}
+            <h3>{{name}} ({{issues.length}})</h3>
+            <ul>
+                {{#each issues}}
+                {{#if key}}
+                <li>
+                    <a href="{{url}}" target="_blank">{{key}}</a>
+                    <span class="issue-status">[{{status}}]</span>
+                    - {{summary}}
+                </li>
+                {{else}}
+                <li>{{raw}}</li>
+                {{/if}}
+                {{/each}}
+            </ul>
+            {{/each}}
+        </div>
+        {{/each}}
+        <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #dfe1e6; color: #6b778c; font-size: 0.9em;">
+            Generated on {{generatedAt}}
+        </footer>
+    </div>
+</body>
+</html>

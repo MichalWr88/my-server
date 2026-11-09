@@ -24,11 +24,13 @@ import {
   getSprint,
   getOrgTaskCurrentSprint,
   searchJira,
+  searchJiraAll,
   parseJiraSprintData,
   formatItemsForGoogleSlides,
   getJiraIssue,
   editIssue,
 } from "./jiraService";
+import { renderTemplate } from "./jiraTemplates";
 import {
   Fields,
   Issue,
@@ -380,383 +382,68 @@ const generateHTMLFromGroupedIssues = (
   grouped: Record<string, Record<string, string[]>>,
   sprintInfo?: { id: string; name: string },
 ) => {
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sprint Issues Report${
-      sprintInfo ? ` - ${sprintInfo.name}` : ""
-    }</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            border-bottom: 3px solid #0052cc;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
-        h2 {
-            color: #0052cc;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f4f5f7;
-            border-left: 4px solid #0052cc;
-        }
-        h3 {
-            color: #5e6c84;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        ul {
-            margin: 0 0 20px 0;
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-            padding: 8px;
-            background: #fafbfc;
-            border-radius: 4px;
-            border-left: 3px solid #dfe1e6;
-        }
-        a {
-            color: #0052cc;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .issue-status {
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.85em;
-            margin-right: 8px;
-        }
-        .sprint-info {
-            background: #e3fcef;
-            border: 1px solid #36b37e;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .project-section {
-            margin-bottom: 40px;
-        }
-        .empty-section {
-            color: #6b778c;
-            font-style: italic;
-            padding: 20px;
-            text-align: center;
-            background: #f4f5f7;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Sprint Issues Report</h1>
-        ${
-          sprintInfo
-            ? `
-        <div class="sprint-info">
-            <strong>Sprint:</strong> ${sprintInfo.name} (ID: ${sprintInfo.id})
-        </div>
-        `
-            : ""
-        }
-        
-        ${Object.entries(grouped)
-          .map(([projectName, issueTypes]) => {
-            if (Object.keys(issueTypes).length === 0) return "";
+  const projects = Object.entries(grouped)
+    .filter(([, issueTypes]) => Object.keys(issueTypes).length > 0)
+    .map(([name, issueTypes]) => ({
+      name,
+      issueTypes: Object.entries(issueTypes).map(([typeName, issues]) => ({
+        name: typeName,
+        issues: issues.map((issue) => {
+          const match = issue.match(/\[(.*?)\|\s*(.*?)\]\[(.*?)\]\s*-\s*(.*)/);
+          if (!match) return { raw: issue };
+          const [, key, url, status, summary] = match;
+          return { key, url, status, summary };
+        }),
+      })),
+    }));
 
-            return `
-        <div class="project-section">
-            <h2>${projectName}</h2>
-            ${Object.entries(issueTypes)
-              .map(
-                ([issueType, issues]) => `
-            <h3>${issueType} (${issues.length})</h3>
-            <ul>
-                ${issues
-                  .map((issue) => {
-                    // Parse the issue string to extract components
-                    const match = issue.match(
-                      /\[(.*?)\|\s*(.*?)\]\[(.*?)\]\s*-\s*(.*)/,
-                    );
-                    if (match) {
-                      const [, issueKey, url, status, summary] = match;
-                      return `<li>
-                        <a href="${url}" target="_blank">${issueKey}</a>
-                        <span class="issue-status">[${status}]</span>
-                        - ${summary}
-                    </li>`;
-                    }
-                    return `<li>${issue}</li>`;
-                  })
-                  .join("")}
-            </ul>
-            `,
-              )
-              .join("")}
-        </div>
-          `;
-          })
-          .filter(Boolean)
-          .join("")}
-        
-        <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #dfe1e6; color: #6b778c; font-size: 0.9em;">
-            Generated on ${new Date().toLocaleString()}
-        </footer>
-    </div>
-</body>
-</html>`;
+  return renderTemplate("groupedIssues", {
+    sprintInfo,
+    projects,
+    generatedAt: new Date().toLocaleString(),
+  });
+};
 
-  return html;
+const formatStatus = (status: string): string => {
+  if (status === "Ready for Deployment") return "RFD";
+  if (status === "W toku") return "In progress";
+  return status;
+};
+
+const isCompletedStatus = (status: string): boolean => {
+  const completedStatuses = ["Closed", "Ready for Deployment", "Done"];
+  return completedStatuses.some((s) => status.toLowerCase() === s.toLowerCase());
 };
 
 const generateHTMLFromGroupedIssuesByEpic = (
   groupedByEpic: GroupedByEpic,
   sprintInfo?: { id: string; name: string },
 ) => {
-  // Helper function to format status
-  const formatStatus = (status: string): string => {
-    if (status === "Ready for Deployment") return "RFD";
-    if (status === "W toku") return "In progress";
-    return status;
-  };
+  const epics = Object.entries(groupedByEpic).map(([name, projects]) => ({
+    name,
+    projects: Object.entries(projects)
+      .filter(([, issueTypes]) => Object.keys(issueTypes).length > 0)
+      .map(([projectName, issueTypes]) => ({
+        name: projectName,
+        issueTypes: Object.entries(issueTypes).map(([typeName, issues]) => ({
+          name: typeName,
+          issues: issues.map((issue) => ({
+            ...issue,
+            formattedStatus: formatStatus(issue.status),
+            statusClass: isCompletedStatus(issue.status)
+              ? "status status-completed"
+              : "status status-in-progress",
+          })),
+        })),
+      })),
+  }));
 
-  // Helper function to check if status is completed
-  const isCompletedStatus = (status: string): boolean => {
-    const completedStatuses = ["Closed", "Ready for Deployment", "Done"];
-    return completedStatuses.some(
-      (s) => status.toLowerCase() === s.toLowerCase(),
-    );
-  };
-
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sprint Issues Report${
-      sprintInfo ? ` - ${sprintInfo.name}` : ""
-    }</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Montserrat', sans-serif;
-            line-height: 1.6;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            padding: 40px 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #ffffff;
-            font-size: 2.5em;
-            margin-bottom: 30px;
-            font-weight: 700;
-            border-bottom: 3px solid #4a9eff;
-            padding-bottom: 15px;
-        }
-        h2 {
-            color: #a78bfa;
-            font-size: 1.8em;
-            margin-top: 50px;
-            margin-bottom: 25px;
-            font-weight: 600;
-            padding: 15px 0;
-            border-bottom: 2px solid #a78bfa;
-        }
-        h3 {
-            color: #60a5fa;
-            font-size: 1.4em;
-            margin-top: 35px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            padding-left: 10px;
-            border-left: 4px solid #60a5fa;
-        }
-        h4 {
-            color: #94a3b8;
-            font-size: 1.1em;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        ul {
-            list-style: none;
-            margin: 0 0 25px 0;
-            padding: 0;
-        }
-        li {
-            margin-bottom: 10px;
-            padding: 0;
-            color: #ffffff;
-            font-size: 1em;
-            line-height: 1.5;
-            font-weight: bold;
-        }
-        a {
-            color: #60a5fa;
-            text-decoration: none;
-            font-weight: 700;
-        }
-        a:hover {
-            color: #93c5fd;
-            text-decoration: underline;
-        }
-        .extra-badge {
-            background: #fb923c;
-            color: #000000;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75em;
-            margin-left: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .status {
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-        .status-completed {
-            color: #10b981;
-            background: #064e3b;
-        }
-        .status-in-progress {
-            color: #f59e0b;
-            background: #451a03;
-        }
-        .assignee {
-            color: #94a3b8;
-            font-weight: 700;
-            font-style: italic;
-        }
-        .sprint-info {
-            background: #065f46;
-            border: 2px solid #10b981;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 40px;
-            color: #ffffff;
-        }
-        .sprint-info strong {
-            color: #6ee7b7;
-        }
-        .epic-section {
-            margin-bottom: 60px;
-        }
-        .project-section {
-            margin-bottom: 40px;
-            padding-left: 20px;
-        }
-        .separator {
-            color: #475569;
-            margin: 0 8px;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Sprint Issues Report</h1>
-        ${
-          sprintInfo
-            ? `
-        <div class="sprint-info">
-            <strong>Sprint:</strong> ${sprintInfo.name} (ID: ${sprintInfo.id})
-        </div>
-        `
-            : ""
-        }
-        
-        ${Object.entries(groupedByEpic)
-          .map(([epicName, projects]) => {
-            return `
-        <div class="epic-section">
-            <h2>📌 ${epicName}</h2>
-            ${Object.entries(projects)
-              .map(([projectName, issueTypes]) => {
-                if (Object.keys(issueTypes).length === 0) return "";
-
-                return `
-            <div class="project-section">
-                <h3>🔷 ${projectName}</h3>
-                ${Object.entries(issueTypes)
-                  .map(
-                    ([issueType, issues]) => `
-                <h4>${issueType} (${issues.length})</h4>
-                <ul>
-                    ${issues
-                      .map((issue) => {
-                        const formattedStatus = formatStatus(issue.status);
-                        const statusClass = isCompletedStatus(issue.status)
-                          ? "status status-completed"
-                          : "status status-in-progress";
-                        const assigneeText = issue.assigneeName
-                          ? ` <span class="assignee">${issue.assigneeName}</span>`
-                          : "";
-                        const extraBadge = issue.extra
-                          ? '<span class="extra-badge">Extra</span>'
-                          : "";
-
-                        return `<li>
-                        <a href="https://${process.env.JIRA_HOST}/browse/${issue.key}" target="_blank">${issue.key}</a>${extraBadge}<span class="separator">-</span>${issue.summary}<span class="separator">-</span><span class="${statusClass}">${formattedStatus}</span>${assigneeText}
-                    </li>`;
-                      })
-                      .join("")}
-                </ul>
-                `,
-                  )
-                  .join("")}
-            </div>
-                `;
-              })
-              .join("")}
-        </div>
-            `;
-          })
-          .join("")}
-        
-        <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid #334155; color: #64748b; font-size: 0.9em;">
-            Generated on ${new Date().toLocaleString()}
-        </footer>
-    </div>
-</body>
-</html>`;
-
-  return html;
+  return renderTemplate("groupedIssuesByEpic", {
+    sprintInfo,
+    epics,
+    jiraHost: process.env.JIRA_HOST,
+    generatedAt: new Date().toLocaleString(),
+  });
 };
 
 export const getGroupedSprintIssues = async (
@@ -1075,5 +762,91 @@ export const getGroupedSprintIssuesHTML = async (
   } catch (e) {
     console.error("getGroupedSprintIssuesHTML failed:", e);
     return reply.code(500).send(e);
+  }
+};
+
+const FEATURE_TEAM_FIELD = "customfield_11410";
+const TNT_TEAM = "TNT";
+const JQL_CHUNK_SIZE = 50;
+const EXCLUDED_STATUSES = ["Closed", "Rejected", "Freezed"];
+const STATUS_FILTER_JQL = `status NOT IN (${EXCLUDED_STATUSES.map((s) => `"${s}"`).join(", ")})`;
+
+interface JiraBlocker {
+  key: string;
+  summary: string;
+  status: string;
+}
+
+const toTntIssue = (issue: JiraApi.IssueObject) => ({
+  key: issue.key,
+  summary: issue.fields.summary,
+  status: issue.fields.status?.name,
+  type: issue.fields.issuetype?.name,
+  assignee: issue.fields.assignee?.displayName ?? null,
+  featureTeam: issue.fields[FEATURE_TEAM_FIELD]?.value ?? null,
+  blockedBy: ((issue.fields.issuelinks ?? []) as any[])
+    .filter(
+      (l: any) => l.inwardIssue && /blocked by/i.test(l.type?.inward ?? ""),
+    )
+    .map((l: any): JiraBlocker => ({
+      key: l.inwardIssue.key as string,
+      summary: l.inwardIssue.fields?.summary as string,
+      status: l.inwardIssue.fields?.status?.name as string,
+    })),
+});
+
+export const getTntEpics = async (
+  req: FastifyRequest<{ Querystring: { format?: string } }>,
+  reply: FastifyReply,
+): Promise<any> => {
+  try {
+    const epics = await searchJiraAll(
+      `issuetype = Epic AND ("Feature Team" = ${TNT_TEAM} OR "Participating Teams" = ${TNT_TEAM}) AND ${STATUS_FILTER_JQL} ORDER BY status ASC, created DESC`,
+      ["summary", "status", "assignee", FEATURE_TEAM_FIELD],
+    );
+
+    const tasksByEpic: Record<string, ReturnType<typeof toTntIssue>[]> = {};
+    const closedCountByEpic: Record<string, number> = {};
+    for (let i = 0; i < epics.length; i += JQL_CHUNK_SIZE) {
+      const keys = epics
+        .slice(i, i + JQL_CHUNK_SIZE)
+        .map((e) => e.key)
+        .join(",");
+      const tasks = await searchJiraAll(
+        `parent in (${keys}) AND "Feature Team" = ${TNT_TEAM} AND status != Cancelled`,
+        ["summary", "status", "assignee", "issuetype", "parent", "issuelinks", FEATURE_TEAM_FIELD],
+      );
+      for (const task of tasks) {
+        const parentKey = task.fields.parent?.key;
+        if (!parentKey) continue;
+        if (EXCLUDED_STATUSES.includes(task.fields.status?.name)) {
+          closedCountByEpic[parentKey] = (closedCountByEpic[parentKey] ?? 0) + 1;
+          continue;
+        }
+        (tasksByEpic[parentKey] ??= []).push(toTntIssue(task));
+      }
+    }
+
+    const result = epics.map((epic) => ({
+      ...toTntIssue(epic),
+      tasks: tasksByEpic[epic.key] ?? [],
+      closedTasksCount: closedCountByEpic[epic.key] ?? 0,
+    }));
+    if (req.query?.format === "html") {
+      return reply
+        .code(200)
+        .header("Content-Type", "text/html; charset=utf-8")
+        .send(
+          renderTemplate("tntEpics", {
+            total: result.length,
+            epics: result,
+            jiraHost: process.env.JIRA_HOST,
+            closedStatuses: EXCLUDED_STATUSES.join(", "),
+          }),
+        );
+    }
+    return reply.code(200).send({ total: result.length, epics: result });
+  } catch (e) {
+    return reply.code(500).send(e instanceof Error ? { message: e.message } : e);
   }
 };

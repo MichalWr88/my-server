@@ -36,6 +36,7 @@ import {
   copyComponentsToLabelsForCurrentSprint,
   getGroupedSprintIssues,
   getGroupedSprintIssuesHTML,
+  getTntEpics,
 } from "../../service/jira/jiraController";
 export const jiraRoutes = async (server: FastifyInstance) => {
   server.get(
@@ -277,6 +278,14 @@ export const jiraRoutes = async (server: FastifyInstance) => {
       preHandler: [server.authenticate],
     },
     copyComponentsToLabelsForCurrentSprint
+  );
+
+  server.get(
+    "/epics/tnt",
+    {
+      preHandler: [server.authenticate],
+    },
+    getTntEpics
   );
 
   server.log.info("jira routes registered");

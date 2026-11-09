@@ -5,7 +5,7 @@
   "packageManager": "npm@9.6.7",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-templates.js",
     "start": "node ./build/index.js",
     "pm2-start": "pm2 startOrRestart ecosystem.config.js",
     "dev": "TZ=UTC nodemon",
@@ -32,6 +32,7 @@
     "dotenv": "^17.4.2",
     "fastify": "^5.12.3",
     "fastify-type-provider-zod": "^4.0.2",
+    "handlebars": "^4.7.10",
     "jira-client": "^7.2.0",
     "mysql": "^2.14.1",
     "reflect-metadata": "^0.2.2",

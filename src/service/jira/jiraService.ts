@@ -153,6 +153,43 @@ export const searchJira = async (
   }
   return (await response.json()) as JiraApi.IssueObject;
 };
+export const searchJiraAll = async (
+  jql: string,
+  fields: string[],
+): Promise<JiraApi.IssueObject[]> => {
+  const authHeader = `Basic ${Buffer.from(
+    `${process.env.JIRA_EMAIL}:${process.env.JIRA_API_TOKEN}`
+  ).toString("base64")}`;
+  const issues: JiraApi.IssueObject[] = [];
+  let nextPageToken: string | undefined;
+  do {
+    const response = await fetch(
+      `https://${process.env.JIRA_HOST}/rest/api/3/search/jql`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jql, fields, maxResults: 100, nextPageToken }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Jira search failed: ${response.status} ${await response.text()}`
+      );
+    }
+    const page = (await response.json()) as {
+      issues: JiraApi.IssueObject[];
+      nextPageToken?: string;
+    };
+    issues.push(...page.issues);
+    nextPageToken = page.nextPageToken;
+  } while (nextPageToken);
+  return issues;
+};
+
 export const getJiraSprint = async (
   sprintId: string
 ): Promise<JiraApi.JsonResponse> => {

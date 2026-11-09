@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Epiki TNT</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 24px; color: #222; }
+  section { margin-bottom: 28px; }
+  h2 { font-size: 18px; margin-bottom: 4px; }
+  .meta { margin: 0 0 8px; color: #555; }
+  .empty { color: #888; font-style: italic; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; font-size: 14px; }
+  th { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>Epiki TNT ({{total}})</h1>
+{{#each epics}}
+<section>
+  <h2><a href="https://{{@root.jiraHost}}/browse/{{key}}" target="_blank">{{key}}</a> {{summary}}</h2>
+  <p class="meta">Status: <b>{{status}}</b> · Assignee: <b>{{#if assignee}}{{assignee}}{{else}}-{{/if}}</b> · Feature Team: <b>{{#if featureTeam}}{{featureTeam}}{{else}}-{{/if}}</b></p>
+  {{#if tasks.length}}
+  <table>
+    <tr><th>Key</th><th>Summary</th><th>Type</th><th>Status</th><th>Blocked by</th></tr>
+    {{#each tasks}}
+    <tr>
+      <td><a href="https://{{@root.jiraHost}}/browse/{{key}}" target="_blank">{{key}}</a></td>
+      <td>{{summary}}</td>
+      <td>{{type}}</td>
+      <td>{{status}}</td>
+      <td>{{#each blockedBy}}<a href="https://{{@root.jiraHost}}/browse/{{key}}" target="_blank">{{key}}</a> ({{status}}) {{summary}}{{#unless @last}}<br>{{/unless}}{{else}}-{{/each}}</td>
+    </tr>
+    {{/each}}
+  </table>
+  {{else}}
+  <p class="empty">Brak otwartych zadań TNT</p>
+  {{/if}}
+  <p class="meta">Zamknięte zadania TNT ({{@root.closedStatuses}}): <b>{{closedTasksCount}}</b></p>
+</section>
+{{/each}}
+</body>
+</html>
